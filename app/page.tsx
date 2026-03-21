@@ -24,7 +24,7 @@ const translations = {
     hero: {
       tagline: "Sets exclusivos de Dota 2",
       subtitle: "Directamente desde mi inventario",
-      tiktok: "+120K vistas en TikTok",
+      tiktok: "TikTok",
       cta: "Ver Sets",
     },
     howToBuy: {
@@ -35,7 +35,7 @@ const translations = {
       step2Desc: "Acordamos precio y verificas el item",
       step3Title: "Recibe",
       step3Desc: "Te envío la oferta de intercambio en Steam o regalo directo",
-      socialProof: "+120K vistas en TikTok",
+      socialProof: "TikTok",
     },
     footer: {
       disclaimer: "Todos los items son artículos legítimos del inventario de Steam",
@@ -65,7 +65,7 @@ const translations = {
     hero: {
       tagline: "Exclusive Dota 2 Sets",
       subtitle: "Straight from my inventory",
-      tiktok: "+120K views on TikTok",
+      tiktok: "TikTok",
       cta: "View Sets",
     },
     howToBuy: {
@@ -76,7 +76,7 @@ const translations = {
       step2Desc: "We agree on price and you verify the item",
       step3Title: "Receive",
       step3Desc: "I send you the Steam trade offer or direct gift",
-      socialProof: "+120K views on TikTok",
+      socialProof: "TikTok",
     },
     footer: {
       disclaimer: "All items are legitimate Steam inventory items",
@@ -106,7 +106,7 @@ const translations = {
     hero: {
       tagline: "Эксклюзивные сеты Dota 2",
       subtitle: "Прямо из моего инвентаря",
-      tiktok: "+120K просмотров в TikTok",
+      tiktok: "TikTok",
       cta: "Смотреть Сеты",
     },
     howToBuy: {
@@ -117,7 +117,7 @@ const translations = {
       step2Desc: "Согласуем цену и проверишь предмет",
       step3Title: "Получи",
       step3Desc: "Отправлю тебе предложение обмена в Steam или прямой подарок",
-      socialProof: "+120K просмотров в TikTok",
+      socialProof: "TikTok",
     },
     footer: {
       disclaimer: "Все предметы являются легитимными предметами инвентаря Steam",
@@ -394,6 +394,144 @@ function HeroSection({ t }: { t: typeof translations.es }) {
   );
 }
 
+// Componente separado para el carrusel con lightbox
+function ImageCarousel({ item, t }: { item: (typeof items)[0]; t: typeof translations.es }) {
+  const [imgIndex, setImgIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const hasMultiple = item.image.length > 1;
+
+  return (
+    <>
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 border border-border flex items-center justify-center text-foreground hover:bg-background transition-all"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {hasMultiple && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setImgIndex(i => Math.max(0, i - 1)); }}
+                disabled={imgIndex === 0}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 border border-border flex items-center justify-center text-foreground hover:bg-background transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setImgIndex(i => Math.min(item.image.length - 1, i + 1)); }}
+                disabled={imgIndex === item.image.length - 1}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 border border-border flex items-center justify-center text-foreground hover:bg-background transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          <img
+            src={item.image[imgIndex]}
+            alt={`${item.hero} - ${item.setName}`}
+            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {hasMultiple && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+              {item.image.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setImgIndex(i); }}
+                  className={`w-2 h-2 rounded-full transition-all ${i === imgIndex ? "bg-gold scale-125" : "bg-white/50 hover:bg-white/80"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Imagen con carrusel */}
+      <div className="relative h-56 sm:h-64 bg-gradient-to-br from-secondary to-background overflow-hidden group/img">
+        <img
+          src={item.image[imgIndex]}
+          alt={`${item.hero} - ${item.setName}`}
+          className="w-full h-full object-contain p-2 transition-all duration-300 cursor-zoom-in"
+          loading="lazy"
+          onClick={() => setLightboxOpen(true)}
+        />
+
+        {/* Hint de zoom */}
+        <div className="absolute top-2 left-2 bg-background/60 border border-border rounded-full px-2 py-0.5 text-xs text-muted-foreground opacity-0 group-hover/img:opacity-100 transition-opacity pointer-events-none">
+          🔍 Click para ampliar
+        </div>
+
+        {/* Glow overlay */}
+        <div className={`absolute inset-0 opacity-0 group-hover/img:opacity-20 transition-opacity pointer-events-none ${item.rarity === "mythical"
+          ? "bg-gradient-to-br from-pink-500 via-yellow-400 to-cyan-500"
+          : item.rarity === "immortal"
+            ? "bg-gradient-to-br from-orange-500 to-amber-500"
+            : item.rarity === "legendary"
+              ? "bg-gradient-to-br from-purple-600 to-violet-500"
+              : item.rarity === "rare"
+                ? "bg-gradient-to-br from-blue-500 to-blue-700"
+                : "bg-gradient-to-br from-zinc-500 to-zinc-600"
+          }`} />
+
+        {/* Flechas */}
+        {hasMultiple && (
+          <>
+            <button
+              onClick={() => setImgIndex(i => Math.max(0, i - 1))}
+              disabled={imgIndex === 0}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 hover:bg-background border border-border flex items-center justify-center transition-all opacity-0 group-hover/img:opacity-100 disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <svg className="w-3.5 h-3.5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setImgIndex(i => Math.min(item.image.length - 1, i + 1))}
+              disabled={imgIndex === item.image.length - 1}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 hover:bg-background border border-border flex items-center justify-center transition-all opacity-0 group-hover/img:opacity-100 disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <svg className="w-3.5 h-3.5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Dots */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {item.image.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setImgIndex(i)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? "bg-gold scale-125" : "bg-white/50 hover:bg-white/80"}`}
+                />
+              ))}
+            </div>
+
+            {/* Badge */}
+            <div className="absolute top-2 right-2 bg-background/70 border border-border rounded-full px-2 py-0.5 text-xs text-muted-foreground">
+              {imgIndex + 1}/{item.image.length}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 function ItemCard({
   item,
   t,
@@ -422,24 +560,19 @@ function ItemCard({
 
   const rarityColors = {
     immortal: {
-      glow: "shadow-immortal-orange/50 hover:shadow-immortal-orange/70",
+      glow: "shadow-orange-500/50 hover:shadow-orange-500/70",
       badge: "bg-gradient-to-r from-orange-600 to-amber-500 text-white",
-      border: "border-immortal-orange/30 hover:border-immortal-orange/60",
-    },
-    arcana: {
-      glow: "shadow-arcana-pink/50 hover:shadow-arcana-pink/70",
-      badge: "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white arcana-shimmer",
-      border: "border-arcana-pink/30 hover:border-arcana-pink/60",
-    },
-    legendary: {
-      glow: "shadow-legendary-purple/50 hover:shadow-legendary-purple/70",
-      badge: "bg-gradient-to-r from-purple-600 to-violet-500 text-white",
-      border: "border-legendary-purple/30 hover:border-legendary-purple/60",
+      border: "border-orange-500/30 hover:border-orange-500/60",
     },
     mythical: {
-      glow: "shadow-legendary-purple/50 hover:shadow-legendary-purple/70",
+      glow: "shadow-purple-500/50 hover:shadow-purple-500/70",
       badge: "bg-gradient-to-r from-purple-600 to-violet-500 text-white",
-      border: "border-legendary-purple/30 hover:border-legendary-purple/60",
+      border: "border-purple-500/30 hover:border-purple-500/60",
+    },
+    legendary: {
+      glow: "shadow-purple-400/50 hover:shadow-purple-400/70",
+      badge: "bg-gradient-to-r from-purple-500 to-indigo-500 text-white",
+      border: "border-purple-400/30 hover:border-purple-400/60",
     },
     rare: {
       glow: "shadow-blue-500/60 hover:shadow-blue-500/80",
@@ -451,7 +584,6 @@ function ItemCard({
       badge: "bg-gradient-to-r from-zinc-500 to-zinc-600 text-white",
       border: "border-zinc-500/30 hover:border-zinc-500/60",
     },
-
   };
 
   const colors = rarityColors[item.rarity];
@@ -460,13 +592,11 @@ function ItemCard({
   return (
     <div
       ref={cardRef}
-      className={`relative group transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
+      className={`relative group transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: `${(index % 6) * 80}ms` }}
     >
       <div className={`relative bg-card rounded-xl border-2 ${colors.border} overflow-hidden transition-all duration-300 hover:-translate-y-2 shadow-lg ${colors.glow} hover:shadow-xl`}>
 
-        {/* Sold Out Overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
             <span className="text-2xl font-bold text-red-500 rotate-[-12deg] border-4 border-red-500 px-6 py-2 rounded">
@@ -475,77 +605,8 @@ function ItemCard({
           </div>
         )}
 
-        {/* Image Carousel */}
-        {(() => {
-          const [imgIndex, setImgIndex] = useState(0);
-          const hasMultiple = item.image.length > 1;
+        <ImageCarousel item={item} t={t} />
 
-          return (
-            <div className="relative h-56 sm:h-64 bg-gradient-to-br from-secondary to-background overflow-hidden group/img">
-              <img
-                src={item.image[imgIndex]}
-                alt={`${item.hero} - ${item.setName} ${imgIndex + 1}`}
-                className="w-full h-full object-contain p-2 transition-all duration-300"
-                loading="lazy"
-              />
-
-              {/* Glow overlay */}
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none ${item.rarity === "mythical"
-                  ? "bg-gradient-to-br from-pink-500 via-yellow-400 to-cyan-500"
-                  : item.rarity === "immortal"
-                    ? "bg-gradient-to-br from-orange-500 to-amber-500"
-                    : item.rarity === "legendary"
-                      ? "bg-gradient-to-br from-purple-600 to-violet-500"
-                      : item.rarity === "rare"
-                        ? "bg-gradient-to-br from-blue-500 to-blue-700"
-                        : "bg-gradient-to-br from-zinc-500 to-zinc-600"
-                }`} />
-
-              {/* Flechas — solo si hay más de 1 imagen */}
-              {hasMultiple && (
-                <>
-                  <button
-                    onClick={() => setImgIndex(0)}
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 hover:bg-background/90 border border-border flex items-center justify-center transition-all opacity-0 group-hover/img:opacity-100 ${imgIndex === 0 ? "opacity-30 cursor-not-allowed" : ""}`}
-                    disabled={imgIndex === 0}
-                  >
-                    <svg className="w-3.5 h-3.5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setImgIndex(1)}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 hover:bg-background/90 border border-border flex items-center justify-center transition-all opacity-0 group-hover/img:opacity-100 ${imgIndex === 1 ? "opacity-30 cursor-not-allowed" : ""}`}
-                    disabled={imgIndex === 1}
-                  >
-                    <svg className="w-3.5 h-3.5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-
-                  {/* Dots */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {item.image.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setImgIndex(i)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? "bg-gold scale-125" : "bg-white/50 hover:bg-white/80"
-                          }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Badge "más fotos" */}
-                  <div className="absolute top-2 right-2 bg-background/70 border border-border rounded-full px-2 py-0.5 text-xs text-muted-foreground">
-                    {imgIndex + 1}/{item.image.length}
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Content */}
         <div className="p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="min-w-0">
@@ -570,7 +631,6 @@ function ItemCard({
             <span className="text-2xl font-bold text-gold">{item.price}€</span>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-2">
             <a
               href="https://t.me/lermns"
@@ -578,11 +638,7 @@ function ItemCard({
               rel="noopener noreferrer"
               className={`flex-1 ${isSoldOut ? "pointer-events-none opacity-50" : ""}`}
             >
-              <Button
-                size="sm"
-                disabled={isSoldOut}
-                className="w-full bg-electric-blue hover:bg-electric-blue/80 text-background font-medium gap-1.5 text-xs"
-              >
+              <Button size="sm" disabled={isSoldOut} className="w-full bg-electric-blue hover:bg-electric-blue/80 text-background font-medium gap-1.5 text-xs">
                 <Send size={13} />
                 {t.items.contactToBuy}
               </Button>
@@ -593,11 +649,7 @@ function ItemCard({
               rel="noopener noreferrer"
               className={`flex-1 ${isSoldOut ? "pointer-events-none opacity-50" : ""}`}
             >
-              <Button
-                size="sm"
-                disabled={isSoldOut}
-                className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-medium gap-1.5 text-xs"
-              >
+              <Button size="sm" disabled={isSoldOut} className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-medium gap-1.5 text-xs">
                 <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" aria-hidden="true">
                   <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.291-.077.448-.983 5.036-4.341 6.77-8.63 6.77H9.275a.774.774 0 0 0-.763.654l-.834 5.304-.096.613-.506 3.252z" />
                 </svg>
@@ -606,8 +658,8 @@ function ItemCard({
             </a>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
