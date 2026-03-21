@@ -13,6 +13,10 @@ const translations = {
       home: "Inicio",
       sets: "Sets",
       contact: "Contacto",
+      searchPlaceholder: "Buscar héroe...",
+      showingSetsOf: "Mostrando sets de:",
+      noHeroFound: "No se encontró ningún héroe",
+      setsWord: "sets",
     },
     items: {
       contactToBuy: "Contactar por Telegram",
@@ -54,6 +58,10 @@ const translations = {
       home: "Home",
       sets: "Sets",
       contact: "Contact",
+      searchPlaceholder: "Search hero...",
+      showingSetsOf: "Showing sets of:",
+      noHeroFound: "No hero found",
+      setsWord: "sets",
     },
     items: {
       contactToBuy: "Contact on Telegram",
@@ -95,6 +103,10 @@ const translations = {
       home: "Главная",
       sets: "Сеты",
       contact: "Контакт",
+      searchPlaceholder: "Поиск героя...",
+      showingSetsOf: "Сеты героя:",
+      noHeroFound: "Герой не найден",
+      setsWord: "сетов",
     },
     items: {
       contactToBuy: "Написать в Telegram",
@@ -752,7 +764,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
                 setShowDropdown(true);
               }}
               onFocus={() => search.length > 0 && setShowDropdown(true)}
-              placeholder="Buscar héroe..."
+              placeholder={t.nav.searchPlaceholder}
               className="w-full pl-9 pr-10 py-2.5 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/30 transition-all text-sm"
             />
             {search && (
@@ -778,7 +790,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
                       <span className="text-foreground font-medium">{hero}</span>
                     </div>
                     <span className="text-xs text-muted-foreground group-hover:text-gold transition-colors">
-                      {heroItems.length} set{heroItems.length !== 1 ? "s" : ""}
+                      {heroItems.length} {t.nav.setsWord}
                     </span>
                   </button>
                 );
@@ -789,7 +801,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
           {showDropdown && search.length > 0 && filteredHeroes.length === 0 && !selectedHero && (
             <div ref={dropdownRef}
               className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-xl z-50 px-4 py-3 text-sm text-muted-foreground text-center">
-              No se encontró ningún héroe
+              {t.nav.noHeroFound}
             </div>
           )}
         </div>
@@ -797,7 +809,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
         {/* Filtro activo */}
         {selectedHero && (
           <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-sm text-muted-foreground">Mostrando sets de:</span>
+            <span className="text-sm text-muted-foreground">{t.nav.showingSetsOf}</span>
             <span className="flex items-center gap-1.5 bg-gold/10 border border-gold/30 text-gold text-sm font-medium px-3 py-1 rounded-full">
               {selectedHero}
               <button onClick={handleClearFilter} className="hover:text-white transition-colors ml-1">
@@ -835,7 +847,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
               disabled={currentPage === 1}
               className="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:border-gold/50 hover:text-gold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              ← Anterior
+              ← Prev
             </button>
 
             {/* Números de página */}
@@ -874,7 +886,7 @@ function SetsGrid({ t }: { t: typeof translations.es }) {
               disabled={currentPage === totalPages}
               className="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:border-gold/50 hover:text-gold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Siguiente →
+              Next →
             </button>
           </div>
         )}
@@ -1423,7 +1435,7 @@ const items = [
   { id: 199, hero: "Storm Spirit", setName: "Beast of Thunder", rarity: "mythical" as const, price: 8, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/BEAST_OF_THUNDER_zcblkk.jpg"] },
   // SVEN
   { id: 200, hero: "Sven", setName: "Astral Schism", rarity: "mythical" as const, price: 5, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/ASTRAL_SCHISM_tosimr.jpg"] },
-  { id: 201, hero: "Sven", setName: "Indomitable Legacy", rarity: "mythical" as const, price: 80, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/INDOMITABLE_LEGACY_hsvc6b.jpg"] },
+  { id: 201, hero: "Sven", setName: "Indomitable Legacy", rarity: "mythical" as const, price: 100, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/INDOMITABLE_LEGACY_hsvc6b.jpg"] },
   { id: 202, hero: "Sven", setName: "Watcher on the Northern Shore", rarity: "rare" as const, price: 5, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/WATCHER_ON_THE_NORTHERN_SHORE_j05w9v.jpg"] },
   // TECHIES
   { id: 203, hero: "Techies", setName: "War Rig Eradicators", rarity: "mythical" as const, price: 4, stock: 1, image: ["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/WAR_RIG_ERADICATORS_vtvke8.jpg"] },

@@ -3,13 +3,13 @@ import { Cinzel, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const cinzel = Cinzel({ 
+const cinzel = Cinzel({
   subsets: ["latin"],
   variable: '--font-cinzel',
   display: 'swap',
 });
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin", "cyrillic"],
   variable: '--font-inter',
   display: 'swap',
@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   description: 'Premium Dota 2 marketplace for exclusive hero sets, Arcanas, and Immortals. Straight from my inventory to yours. @lermns',
   keywords: ['Dota 2', 'Arcana', 'Immortal', 'Steam', 'Trading', 'Sets', 'Cosmetics'],
   generator: 'v0.app',
+  icons: {
+    icon: 'https://res.cloudinary.com/dxte0oxyq/image/upload/v1774137291/lermns_shop_items_rclbz1.png',
+  },
 }
 
 export const viewport: Viewport = {
