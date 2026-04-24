@@ -639,12 +639,12 @@ function ItemCard({
             </span>
           </div>
 
-          <div className="flex items-center justify-between mb-3">
+          {/* <div className="flex items-center justify-between mb-3">
             <span className="text-2xl font-bold text-gold">{item.price}€</span>
-          </div>
+          </div> */}
 
           <div className="flex gap-2">
-            <a
+            {/* <a
               href="https://t.me/lermns"
               target="_blank"
               rel="noopener noreferrer"
@@ -653,9 +653,9 @@ function ItemCard({
               <Button size="sm" disabled={isSoldOut} className="w-full bg-electric-blue hover:bg-electric-blue/80 text-background font-medium gap-1.5 text-xs">
                 <Send size={13} />
                 {t.items.contactToBuy}
-              </Button>
-            </a>
-            <a
+              </Button> 
+            </a>*/}
+            {/* <a
               href={`https://paypal.me/Lermns/${item.price}EUR`}
               target="_blank"
               rel="noopener noreferrer"
@@ -667,7 +667,7 @@ function ItemCard({
                 </svg>
                 PayPal
               </Button>
-            </a>
+            </a> */}
           </div>
         </div>
       </div >
