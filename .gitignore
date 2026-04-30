@@ -1,0 +1,10 @@
+# Design files (local only)
+Wireframe.html
+design-canvas.jsx
+index v3.html
+
+# Next.js leftovers (cause Vercel build errors)
+app/
+
+# Local uploads / scratch images
+uploads/
