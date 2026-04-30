@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CACHE — Dota 2 Cache Sets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #080808;
+  --bg-card:      #121212;
+  --bg-card-h:    #181818;
+  --bg-header:    rgba(6,6,6,0.82);
+  --border:       #252525;
+  --border-h:     #383838;
+  --text-1:       #e4e4e4;
+  --text-2:       #7a7a7a;
+  --text-3:       #444;
+  --accent:       #b01010;
+  --accent-b:     #cc1100;
+  --accent-dim:   rgba(155,16,16,0.18);
+  --accent-glow:  rgba(155,16,16,0.08);
+  --header-h:     62px;
+  --radius:       3px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: #050505;
+  color: var(--text-1);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ════════════════════════
+   FIXED BACKGROUND IMAGE
+═══════════════════════ */
+.bg-image {
+  position: fixed;
+  inset: -3% -3%;
+  z-index: -2;
+  background-image: url('assets/intro-bg.png');
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+  will-change: transform;
+  transition: transform 0.8s cubic-bezier(0.2, 0, 0.1, 1);
+}
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 100%),
+    rgba(8, 5, 6, 0.6);
+  pointer-events: none;
+}
+
+#particles-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ════════════════════════
+   INTRO OVERLAY
+═══════════════════════ */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #050505;
+  overflow: hidden;
+  transition: opacity 1.2s ease-out, visibility 0s linear 1.2s;
+}
+.intro.fade {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.intro-image {
+  position: absolute;
+  inset: -4% -4%;
+  background-image: url('assets/intro-bg.png');
+  background-size: cover;
+  background-position: center center;
+  transform-origin: 50% 65%;
+  animation: kenBurns 8s ease-out forwards;
+  will-change: transform;
+}
+@keyframes kenBurns {
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(1.08); }
+}
+.intro-parallax {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.intro-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 60%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+}
+.intro-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.intro-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 0 24px;
+  margin-top: 14vh;
+  opacity: 0;
+  animation: introTextIn 1.6s 0.4s ease-out forwards;
+}
+@keyframes introTextIn {
+  0% { opacity: 0; transform: translateY(20px); letter-spacing: 0.4em; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: 0.32em; }
+}
+.intro-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 84px);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #f4f4f4;
+  text-shadow: 0 0 38px rgba(204, 17, 0, 0.45), 0 4px 24px rgba(0,0,0,0.8);
+  margin-bottom: 14px;
+}
+.intro-title em {
+  color: var(--accent-b);
+  font-style: normal;
+}
+.intro-sub {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  font-size: clamp(12px, 1.4vw, 14px);
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+/* ════════════════════════
+   APP CONTAINER (revealed after intro)
+═══════════════════════ */
+.app {
+  opacity: 0;
+  transition: opacity 0.9s ease 0.3s;
+}
+.app.show { opacity: 1; }
+
+/* ════════════════════════
+   HEADER
+═══════════════════════ */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  height: var(--header-h);
+  background: var(--bg-header);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  flex-shrink: 0;
+  user-select: none;
+}
+.logo-sigil { width: 30px; height: 30px; flex-shrink: 0; }
+.logo-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.22em;
+  color: var(--text-1);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.logo-text em { color: var(--accent-b); font-style: normal; }
+
+.header-search {
+  flex: 1;
+  max-width: 380px;
+  display: none;
+}
+@media (min-width: 768px) { .header-search { display: block; } }
+
+.search-field {
+  width: 100%;
+  background: rgba(14,14,14,0.65);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  padding: 8px 14px 8px 38px;
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='11' cy='11' r='7' stroke='%23555' stroke-width='2'/%3E%3Cpath d='M20 20l-3.5-3.5' stroke='%23555' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+.search-field::placeholder { color: var(--text-3); }
+.search-field:focus { border-color: var(--accent); background: rgba(14,14,14,0.9); }
+
+.header-gap { flex: 1; }
+
+.lang-sw { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+.lang-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 4px 7px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.lang-btn:hover { color: var(--text-1); border-color: var(--border-h); }
+.lang-btn.active { color: var(--accent-b); border-color: var(--accent); }
+
+.hdr-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+
+.contact-btns { display: flex; gap: 7px; flex-shrink: 0; }
+.btn-contact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(14,14,14,0.5);
+  color: var(--text-2);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.btn-contact svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-contact:hover {
+  color: var(--text-1);
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+@media (max-width: 420px) {
+  .btn-contact .btn-label { display: none; }
+  .btn-contact { padding: 7px 9px; }
+}
+
+/* ════════════════════════
+   MAIN
+═══════════════════════ */
+main {
+  position: relative;
+  z-index: 2;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 22px 20px 80px;
+}
+
+.mobile-search { margin-bottom: 18px; }
+@media (min-width: 768px) { .mobile-search { display: none; } }
+
+/* ════════════════════════
+   YEAR FILTER
+═══════════════════════ */
+.year-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  background: rgba(14, 14, 14, 0.55);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.year-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-right: 6px;
+}
+.year-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.year-btn:hover { color: var(--text-1); border-color: var(--border-h); }
+.year-btn.active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ════════════════════════
+   RESULTS BAR
+═══════════════════════ */
+.results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  min-height: 22px;
+}
+.results-count { font-size: 12.5px; color: var(--text-2); letter-spacing: 0.03em; }
+.results-count strong { color: var(--text-1); font-weight: 500; }
+
+/* ════════════════════════
+   CARD GRID
+═══════════════════════ */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 500px)  { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 860px)  { .card-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+@media (min-width: 1160px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1400px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }
+
+/* ════════════════════════
+   CARD
+═══════════════════════ */
+.card {
+  background: rgba(18,18,18,0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.card.in { animation: cardIn 0.45s ease forwards; }
+@keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+.card.in:hover {
+  border-color: var(--accent);
+  background: rgba(24,24,24,0.92);
+  box-shadow: 0 0 0 1px var(--accent-dim), 0 8px 32px rgba(0,0,0,0.7), 0 0 18px var(--accent-glow);
+  transform: translateY(-3px);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.2s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-b);
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
+  pointer-events: none;
+}
+.card.in:hover::before { opacity: 1; }
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  position: relative;
+  background: #0e0e0e;
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.card.in:hover .card-img img { transform: scale(1.06); }
+
+.card-img-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  color: #ddd;
+  background: rgba(0,0,0,0.62);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 3px 7px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(4px);
+}
+.card-img-badge svg { width: 10px; height: 10px; opacity: 0.85; }
+
+.card-body { padding: 11px 13px 13px; }
+.card-hero {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 3px;
+}
+.card-set {
+  font-size: 13.5px;
+  color: var(--text-1);
+  line-height: 1.38;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-price {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  color: var(--accent-b);
+  line-height: 1;
+}
+.card-rarity {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-rarity[data-r="common"]    { color: #b8b8b8; }
+.card-rarity[data-r="rare"]      { color: #6aa3ff; }
+.card-rarity[data-r="mythical"]  { color: #c97ad8; }
+.card-rarity[data-r="legendary"] { color: #e8a55c; }
+.card-rarity[data-r="immortal"]  { color: #d8b85c; }
+.rdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+}
+.rdot[data-r="common"]    { color: #b8b8b8; }
+.rdot[data-r="rare"]      { color: #6aa3ff; }
+.rdot[data-r="mythical"]  { color: #c97ad8; }
+.rdot[data-r="legendary"] { color: #e8a55c; }
+.rdot[data-r="immortal"]  { color: #d8b85c; }
+#rarity-filter .year-btn { display: inline-flex; align-items: center; gap: 7px; }
+
+/* ════════════════════════
+   EMPTY
+═══════════════════════ */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 90px 20px;
+}
+.empty-icon { width: 48px; height: 48px; margin: 0 auto 14px; opacity: 0.18; }
+.empty p { color: var(--text-2); font-size: 14px; }
+
+/* ════════════════════════
+   PAGINATION
+═══════════════════════ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 44px;
+  flex-wrap: wrap;
+}
+.pg-btn {
+  min-width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  background: rgba(14,14,14,0.5);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.pg-btn:hover:not(:disabled):not(.active) {
+  color: var(--text-1);
+  border-color: var(--border-h);
+}
+.pg-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.pg-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+/* ════════════════════════
+   LIGHTBOX
+═══════════════════════ */
+.lb {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(3, 3, 3, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.lb.open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+.lb-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+  pointer-events: none;
+}
+.lb-top > * { pointer-events: auto; }
+.lb-meta { color: var(--text-1); }
+.lb-meta-hero {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.lb-meta-set {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: #f4f4f4;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.lb-meta-row { display: flex; gap: 18px; align-items: center; }
+.lb-meta-price {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--accent-b);
+  letter-spacing: 0.04em;
+}
+.lb-meta-year {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  border-radius: 2px;
+}
+.lb-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(20,20,20,0.85);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.lb-close:hover {
+  color: var(--accent-b);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.lb-close svg { width: 16px; height: 16px; }
+
+.lb-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 80px 100px;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .lb-stage { padding: 100px 12px 110px; }
+}
+
+.lb-image-wrap {
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lb-image {
+  max-width: 100%;
+  max-height: calc(100vh - 200px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 10px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+  animation: lbFade 0.4s ease;
+}
+@keyframes lbFade { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+.lb-image-ph {
+  width: min(70vw, 70vh);
+  height: min(70vw, 70vh);
+  border-radius: 4px;
+  box-shadow: 0 10px 60px rgba(0,0,0,0.7);
+  animation: lbFade 0.4s ease;
+}
+
+.lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(20,20,20,0.7);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s;
+  z-index: 5;
+}
+.lb-arrow:hover {
+  color: var(--accent-b);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  transform: translateY(-50%) scale(1.06);
+}
+.lb-arrow svg { width: 18px; height: 18px; }
+.lb-arrow.prev { left: 18px; }
+.lb-arrow.next { right: 18px; }
+.lb-arrow:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+@media (max-width: 600px) {
+  .lb-arrow { width: 42px; height: 42px; }
+  .lb-arrow.prev { left: 8px; }
+  .lb-arrow.next { right: 8px; }
+}
+
+.lb-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  z-index: 10;
+}
+.lb-counter {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+.lb-counter span { color: var(--accent-b); }
+.lb-thumbs {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 4px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.lb-thumb {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, transform 0.2s;
+  background: #0a0a0a;
+  padding: 0;
+}
+.lb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lb-thumb:hover { border-color: var(--border-h); }
+.lb-thumb.active {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(155,16,16,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- Persistent fixed background (revealed after intro) -->
+<div class="bg-image" id="bg-image"></div>
+<div class="bg-overlay"></div>
+<canvas id="particles-canvas"></canvas>
+
+<!-- ─── INTRO ─────────────────────────────────────── -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro-parallax" id="intro-parallax">
+    <div class="intro-image"></div>
+  </div>
+  <div class="intro-vignette"></div>
+  <canvas class="intro-canvas" id="intro-canvas"></canvas>
+  <div class="intro-content">
+    <h1 class="intro-title">CACHE<em>.</em>GG</h1>
+    <p class="intro-sub">Dota&nbsp;2 Cosmetic Cache Sets</p>
+  </div>
+</div>
+
+<!-- ─── APP ───────────────────────────────────────── -->
+<div class="app" id="app">
+
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo" aria-label="Cache.gg home">
+      <svg class="logo-sigil" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="15,2 28,9.5 28,20.5 15,28 2,20.5 2,9.5" stroke="#9B1010" stroke-width="1.5" fill="none"/>
+        <polygon points="15,7 23,11.5 23,18.5 15,23 7,18.5 7,11.5" stroke="#9B1010" stroke-width="0.7" fill="none" opacity="0.4"/>
+        <line x1="15" y1="2" x2="15" y2="28" stroke="#9B1010" stroke-width="0.6" opacity="0.3"/>
+        <line x1="2" y1="9.5" x2="28" y2="20.5" stroke="#9B1010" stroke-width="0.6" opacity="0.3"/>
+        <line x1="28" y1="9.5" x2="2" y2="20.5" stroke="#9B1010" stroke-width="0.6" opacity="0.3"/>
+        <circle cx="15" cy="15" r="2.5" fill="#9B1010" opacity="0.7"/>
+      </svg>
+      <span class="logo-text">CACHE<em>.</em>GG</span>
+    </a>
+
+    <div class="header-search">
+      <input class="search-field" id="search-desktop" type="search" placeholder="Search hero…" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="header-gap"></div>
+
+    <div class="lang-sw" role="group" aria-label="Language">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+      <button class="lang-btn" data-lang="ru">RU</button>
+    </div>
+
+    <div class="hdr-divider"></div>
+
+    <div class="contact-btns">
+      <a href="#" class="btn-contact" id="btn-steam" aria-label="Steam profile">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.97c0-2.484 2.022-4.505 4.505-4.505 2.484 0 4.505 2.021 4.505 4.505s-2.021 4.504-4.505 4.504h-.103l-4.177 2.898c0 .053.007.105.007.158 0 1.867-1.518 3.386-3.385 3.386-1.641 0-3.018-1.174-3.328-2.722L.083 15.785C1.219 20.504 5.676 24 11.979 24 18.624 24 24 18.627 24 12S18.624 0 11.979 0zm-3.738 17.827a1.789 1.789 0 0 1-2.337.956L4.193 17.74a1.789 1.789 0 1 1 3.293-1.386l1.711.713a1.789 1.789 0 0 1 .956 2.337zm10.263-9.329a3.003 3.003 0 0 1-3.002 3.002 3.003 3.003 0 0 1-3.003-3.002 3.003 3.003 0 0 1 3.003-3.003 3.003 3.003 0 0 1 3.002 3.003z"/></svg>
+        <span class="btn-label">Steam</span>
+      </a>
+      <a href="#" class="btn-contact" id="btn-whatsapp" aria-label="WhatsApp contact">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        <span class="btn-label">WhatsApp</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="mobile-search">
+    <input class="search-field" id="search-mobile" type="search" placeholder="Search hero…" autocomplete="off" spellcheck="false" style="width:100%;font-size:15px;padding-top:10px;padding-bottom:10px;">
+  </div>
+
+  <div class="year-filter" id="rarity-filter">
+    <span class="year-label">Rarity</span>
+    <button class="year-btn active" data-rarity="all">All</button>
+    <button class="year-btn" data-rarity="common"><span class="rdot" data-r="common"></span>Common</button>
+    <button class="year-btn" data-rarity="rare"><span class="rdot" data-r="rare"></span>Rare</button>
+    <button class="year-btn" data-rarity="mythical"><span class="rdot" data-r="mythical"></span>Mythical</button>
+    <button class="year-btn" data-rarity="legendary"><span class="rdot" data-r="legendary"></span>Legendary</button>
+    <button class="year-btn" data-rarity="immortal"><span class="rdot" data-r="immortal"></span>Immortal</button>
+  </div>
+
+  <div class="results-bar">
+    <div class="results-count" id="results-count"></div>
+  </div>
+
+  <div class="card-grid" id="card-grid"></div>
+  <div class="pagination" id="pagination"></div>
+</main>
+
+</div><!-- /.app -->
+
+<!-- ─── LIGHTBOX ──────────────────────────────────── -->
+<div class="lb" id="lightbox" role="dialog" aria-modal="true" aria-label="Set gallery">
+  <div class="lb-top">
+    <div class="lb-meta">
+      <div class="lb-meta-hero" id="lb-hero"></div>
+      <div class="lb-meta-set" id="lb-set"></div>
+      <div class="lb-meta-row">
+        <div class="lb-meta-price" id="lb-price"></div>
+        <div class="lb-meta-year" id="lb-year"></div>
+      </div>
+    </div>
+    <button class="lb-close" id="lb-close" aria-label="Close (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M5 5l14 14M19 5L5 19"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="lb-stage" id="lb-stage">
+    <button class="lb-arrow prev" id="lb-prev" aria-label="Previous image">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 6 9 12 15 18"/>
+      </svg>
+    </button>
+    <div class="lb-image-wrap" id="lb-image-wrap"></div>
+    <button class="lb-arrow next" id="lb-next" aria-label="Next image">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 6 15 12 9 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="lb-bottom">
+    <div class="lb-counter" id="lb-counter"></div>
+    <div class="lb-thumbs" id="lb-thumbs"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   DATA
+   - `images` is an array of Cloudinary URLs
+   - leave empty array [] to render placeholders
+════════════════════════════════════════ */
+const SETS = [
+  { hero:'Abaddon', set:'Blightfall', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123335/BLIGHTFALL_ewm9by.jpg"] },
+  { hero:'Abaddon', set:'Endless Night', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/ENDLESS_NIGHT_kdhnb5.jpg"] },
+  { hero:'Abaddon', set:'Phantom Balladeer', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123335/PANTHOM_BALLADEER_gbulwc.jpg"] },
+  { hero:'Abaddon', set:'Spectral Shadow', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/SPECTRAL_SHADOW_ffwaqq.jpg"] },
+  { hero:'Alchemist', set:'Cosmic Concoctioneers', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/COSMIC_CONCOCTIONEERS_yak35n.jpg"] },
+  { hero:'Alchemist', set:'Darkbrew\'s Transgression', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123335/DARKBREWS_TRANSGRESSION_zhdfwz.jpg"] },
+  { hero:'Alchemist', set:'Taur Rider', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/TAUR_RIDER_xnndem.jpg"] },
+  { hero:'Ancient Apparition', set:'Apocalypse Unbound', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123335/APOCALYPSE_UNBOUND_e235ae.jpg"] },
+  { hero:'Ancient Apparition', set:'Frozen Nova', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/FROZEN_NOVA_ofmz6k.jpg"] },
+  { hero:'Ancient Apparition', set:'Gilded Decay', rarity:'rare', price:2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123336/GILDED_DECAY_clhd3y.jpg"] },
+  { hero:'Ancient Apparition', set:'Secrets of the Frost Singularity', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/SECRETS_OF_THE_FROST_SINGULARITY_chavpu.jpg"] },
+  { hero:'Ancient Apparition', set:'Unchained Entropy', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/UNCHAINED_ENTROPY_xbxqso.jpg"] },
+  { hero:'Anti-Mage', set:'Brands of the Reaper', rarity:'mythical', price:12, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/BRANDS_OF_THE_REAPER_cbjnol.jpg"] },
+  { hero:'Anti-Mage', set:'Howls of the Northmarch', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/HOWLS_OF_THE_NORTHMARCH_uxnndm.jpg"] },
+  { hero:'Anti-Mage Persona', set:'Designs of the Dragon', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/DESIGNS_OF_THE_DRAGON_roonwb.jpg"] },
+  { hero:'Anti-Mage Persona', set:'Proselyte of the Sakura Clan', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123337/PROSELYTE_OF_THE_SAKURA_CLAN_fljsny.jpg"] },
+  { hero:'Anti-Mage Persona', set:'Spellbreaker\'s Braid', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123338/SPELLBREAKERS_BRAID_hzwnk7.jpg"] },
+  { hero:'Arc Warden', set:'Ire of the Ancient Gaoler', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123338/IRE_OF_THE_ANCIENT_GAOLER_itjk89.jpg"] },
+  { hero:'Axe', set:'Bootblack Brawler', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123338/BOOTBLACK_BRAWLER_yt8uuo.jpg"] },
+  { hero:'Axe', set:'Days of the Demon', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123339/DAYS_OF_THE_DEMON_aezvus.jpg"] },
+  { hero:'Axe', set:'The Molten Fist', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123338/THE_MOLTEN_FIST_ekytf9.jpg"] },
+  { hero:'Batrider', set:'Charms of the Firefiend', rarity:'rare', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123338/CHARMS_OF_THE_FIREFIEND_aclb6m.jpg"] },
+  { hero:'Batrider', set:'Prized Acquisitions', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123339/PRIZED_ACQUISITIONS_scb07r.jpg"] },
+  { hero:'Bloodseeker', set:'Fury of the Bloodforge', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123339/FURY_OF_THE_BLOODFORGE_jfjzvj.jpg"] },
+  { hero:'Bounty Hunter', set:'Heartless Hunt', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123339/HEARTLESS_HUNT_fev62d.jpg"] },
+  { hero:'Bounty Hunter', set:'Verminator', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123350/VERMINATOR_kp7j4i.jpg"] },
+  { hero:'Brewmaster', set:'The Wilding Tiger', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/THE_WILDING_TIGER_fw0kpf.jpg"] },
+  { hero:'Bristleback', set:'Beast of the Crimson Ring', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123350/BEAST_OF_THE_CRIMSON_RING_clkrfi.jpg"] },
+  { hero:'Bristleback', set:'Blastmitt Berserker Bundle', rarity:'immortal', price:0.7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123350/BLASTMITT_BERSERKER_BUNDLE_pkqs6k.jpg"] },
+  { hero:'Broodmother', set:'Automaton Antiquity', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/AUTOMATON_ANTIQUITY_zzkhj7.jpg"] },
+  { hero:'Broodmother', set:'Limbs of Lycosidae', rarity:'immortal', price:0.2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/LIMBS_OF_LYCOSIDAE_i2aclh.jpg"] },
+  { hero:'Broodmother', set:'Volcanic Sanctuary', rarity:'common', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/VOLCANIC_SANCTUARY_ynk030.jpg"] },
+  { hero:'Broodmother', set:'Widow of the Undermount Gloom', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/WIDOW_OF_THE_UNDERMOUNT_GLOOM_mwbe1h.jpg"] },
+  { hero:'Centaur Warrunner', set:'Cunning Counterfeit', rarity:'legendary', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/CUNNING_COUNTERFEIT_pihcz4.jpg"] },
+  { hero:'Centaur Warrunner', set:'Golden Infernal Cavalcade', rarity:'immortal', price:0.2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/GOLDEN_INFERNAL_CAVALCADE_mu5uxu.jpg"] },
+  { hero:'Centaur Warrunner', set:'Infernal Cavalcade', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123351/INFERNAL_CAVALCADE_ry1nvs.jpg"] },
+  { hero:'Chaos Knight', set:'Melange of the Firelord', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123352/MELANGE_OF_THE_FIRELORD_suwjmz.jpg"] },
+  { hero:'Chaos Knight', set:'Talons of the Endless Storm', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123352/TALONS_OF_THE_ENDLESS_STORM_cxkttt.jpg"] },
+  { hero:'Chaos Knight', set:'Wrath of the Celestial Sentinel', rarity:'mythical', price:45, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/WRATH_OF_THE_CELESTIAL_SENTINEL_twyotz.jpg"] },
+  { hero:'Chen', set:'Hounds of Obsession', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/HOUNDS_OF_OBSESSION_ut4w73.jpg"] },
+  { hero:'Chen', set:'Perils of the Red Banks', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/PERILS_OF_THE_RED_BANKS_b6rmie.jpg"] },
+  { hero:'Clinkz', set:'Withering Pain', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/WITHERING_PAIN_xm2sn4.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/WITHERING_PAIN_2_xpcl04.jpg"] },
+  { hero:'Clockwerk', set:'Apex Automated', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/APEX_AUTOMATED_v7xlra.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123359/APEX_AUTOMATED_2_udf610.jpg"] },
+  { hero:'Clockwerk', set:'Directive of the Sunbound', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123362/DIRECTIVE_OF_THE_SUNBOUND_jzaql0.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/DIRECTIVE_OF_THE_SUNBOUND_2_t10b4g.jpg"] },
+  { hero:'Clockwerk', set:'Distinguished Forgemaster', rarity:'common', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/DISTINGUISHED_FORGEMASTER_hei1uv.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/DISTINGUISHED_FORGEMASTER_2_nlq0nu.jpg"] },
+  { hero:'Clockwerk', set:'Hare of the Cog', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/HARE_OF_THE_COG_cbevzt.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/HARE_OF_THE_COG_2_lp33uz.jpg"] },
+  { hero:'Clockwerk', set:'Seadog\'s Stash', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123360/SEADOGS_STASH_toaenx.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123367/SEADOGS_STASH_2_k35lsc.jpg"] },
+  { hero:'Crystal Maiden Persona', set:'Canis Crystallum', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123367/CANIS_CRYSTALLUM_bj0s5t.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123367/CANIS_CRYSTALLUM_2_rqzkd6.jpg"] },
+  { hero:'Crystal Maiden Persona', set:'Narwolf Nebula', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123368/NARWOLF_NEBULA_me5eap.jpg"] },
+  { hero:'Dark Seer', set:'Insight of Forlorn Precipice', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123368/INSIGHT_OF_FORLORN_PRECIPICE_asqy5n.jpg"] },
+  { hero:'Dark Willow', set:'Ardalan Arsonist', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123368/ARDALAN_ARSONIST_geo0pw.jpg"] },
+  { hero:'Dark Willow', set:'Twilight Hex', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123368/TWILIGHT_HEX_xi8tcj.jpg"] },
+  { hero:'Dawnbreaker', set:'Astral Herald', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123369/ASTRAL_HERALD_xnj8oq.jpg"] },
+  { hero:'Dawnbreaker', set:'Perception of the First Light', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123369/PERCEPTION_OF_THE_FIRST_LIGHT_xpt1ic.jpg"] },
+  { hero:'Dawnbreaker', set:'Red Dawn', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123374/RED_DAWN_w5ptmy.jpg"] },
+  { hero:'Dawnbreaker', set:'Starforge Reformer', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/STARFORGE_REFORMER_gb18hy.jpg"] },
+  { hero:'Dawnbreaker', set:'Starlorn Adjudicator', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/STARLORN_ADJUDICATOR_sdkiqz.jpg"] },
+  { hero:'Dazzle', set:'Dezun Viper', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/DEZUN_VIPER_kqhw7t.jpg"] },
+  { hero:'Dazzle', set:'Needlepoint Necromancer', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/NEEDLEPOINT_NECROMANCER_tbqdcj.jpg"] },
+  { hero:'Death Prophet', set:'Darkwood Eulogy', rarity:'legendary', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/DARKWOOD_EULOGY_pioyrq.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/DARKWOOD_EULOGY_2_fsl0mt.jpg"] },
+  { hero:'Death Prophet', set:'Oaths of the Beloved', rarity:'legendary', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/OATHS_OF_THE_BELOVED_o7xh0r.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123375/OATHS_OF_THE_BELOVED_2_llsqr8.jpg"] },
+  { hero:'Disruptor', set:'Fury of the Righteous Storm', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123376/FURY_OF_THE_RIGHTEOUS_STORM_ry0drn.jpg"] },
+  { hero:'Disruptor', set:'Tremors of the Tandem Storm', rarity:'immortal', price:0.2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123376/TREMORS_OF_THE_TANDEM_STORM_zgarpl.jpg"] },
+  { hero:'Doom', set:'Dawn of a Darkness Foretold', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123376/DAWN_OF_A_DARKNESS_FORETOLD_emcix4.jpg"] },
+  { hero:'Doom', set:'Heat of the Sixth Hell', rarity:'common', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123376/HEAT_OF_THE_SIXTH_HELL_qgkder.jpg"] },
+  { hero:'Doom', set:'Igneous Infernal', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/IGNEOUS_INFERNAL_en05wk.jpg"] },
+  { hero:'Doom', set:'Litany of the Damned', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/LINATY_OF_THE_DAMNED_conwn8.jpg"] },
+  { hero:'Doom', set:'Wrath of the Fallen', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/WRATH_OF_THE_FALLEN_tqfwnw.jpg"] },
+  { hero:'Dragon Knight', set:'Draconic Divide', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/DRACONIC_DIVIDE_p0fmin.jpg"] },
+  { hero:'Dragon Knight', set:'Silverwurm Sacrifice', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/SILVERWURM_SACRIFICE_pqgj8p.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123384/SILVERWURM_SACRIFICE_2_gv84ew.jpg"] },
+  { hero:'Drow Ranger', set:'Sight of the Kha-Ren Faithful', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123385/SIGHT_OF_THE_KHA-REN_FAITHFUL_of2yt0.jpg"] },
+  { hero:'Drow Ranger', set:'Stranger in the Wandering Isles', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123385/STARNGER_IN_THE_WANDERING_ISLES_fkkloe.jpg"] },
+  { hero:'Earthshaker', set:'Pallbringer', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123385/PALLBRINGER_mmb1pt.jpg"] },
+  { hero:'Ember Spirit', set:'Master of the Searing Path', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123385/MASTER_OF_THE_SEARING_PATH_stiupv.jpg"] },
+  { hero:'Enchantress', set:'Caerulean Star', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123386/CAERULEAN_STAR_fwuvsh.jpg"] },
+  { hero:'Enchantress', set:'Flutterstep', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123386/FLUTTERSTEP_t2nbqg.jpg"] },
+  { hero:'Enchantress', set:'Songs of Starfall Glen', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123387/SONGS_OF_STARFALL_GLEN_fdibwz.jpg"] },
+  { hero:'Enigma', set:'Angel of the Abyss', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123386/ANGEL_OF_THE_ABYSS_l0eit0.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123386/ANGEL_OF_THE_ABYSS_2_vqfbvc.jpg"] },
+  { hero:'Enigma', set:'Astral Terminus', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123386/ASTRAL_TERMINUS_yuaaf8.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123387/ASTRAL_TERMINUS_2_uijzxm.jpg"] },
+  { hero:'Enigma', set:'Evolution of the Infinite', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123391/EVOLUTION_OF_THE_INFINITE_qtf0tv.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/EVOLUTION_OF_THE_INFINITE_2_zx40on.jpg"] },
+  { hero:'Enigma', set:'Graviton Blackguard', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/GRAVITON_BLACKGUARD_dqwnox.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/GRAVITON_BLACKGUARD_2_xn2hmk.jpg"] },
+  { hero:'Faceless Void', set:'Chines of the Inquisitor', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/CHINES_OF_THE_INQUISITOR_brj6na.jpg"] },
+  { hero:'Faceless Void', set:'Chrononaut Continuum', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/CHRONONAUT_CONTINUUM_ru1ozm.jpg"] },
+  { hero:'Faceless Void', set:'Tendrils of the Timeless', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123399/TENDRILS_OF_THE_TIMELESS_ecrjut.jpg"] },
+  { hero:'Grimstroke', set:'Elegy of the Reaper', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/ELEGY_OF_THE_REAPER_mxupx8.jpg"] },
+  { hero:'Grimstroke', set:'Herald of the Ember Eye', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/HERALD_OF_THE_EMBER_EYE_fq9rnb.jpg"] },
+  { hero:'Grimstroke', set:'The Chained Scribe', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/THE_CHAINED_SCRIBE_j4myma.jpg"] },
+  { hero:'Gyrocopter', set:'Arcane Inverter', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/ARCANE_INVERTER_uodsfp.jpg"] },
+  { hero:'Hoodwink', set:'Bilge Rat Buccaneer', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/BILGE_RAT_BUCCANEER_xxzizd.jpg"] },
+  { hero:'Hoodwink', set:'Shadowleaf Insurgent', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/SHADOWLEAF_INSURGENT_glruvv.jpg"] },
+  { hero:'Hoodwink', set:'The Strings of Suradan Bundle', rarity:'immortal', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123400/THE_STRINGS_OF_SURADAN_BUNDLE_uhm3i6.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/THE_STRINGS_OF_SURADAN_BUNDLE_2_ch9x0j.jpg"] },
+  { hero:'Hoodwink', set:'Tomokan Footsoldier', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/TOMOKAN_FOOTSOLDIER_l402uc.jpg"] },
+  { hero:'Huskar', set:'Bleeding Edge', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/BLEEDING_EDGE_c25ajn.jpg"] },
+  { hero:'Huskar', set:'Draca Mane', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/DRACA_MANE_vze4ax.jpg"] },
+  { hero:'Huskar', set:'Flashpoint Proselyte', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/FLASHPOINT_PROSELYTE_cureq9.jpg"] },
+  { hero:'Huskar', set:'Golden Draca Mane', rarity:'immortal', price:0.2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123401/GOLDEN_DRACA_MANE_yn0hwc.jpg"] },
+  { hero:'Huskar', set:'Hides of Hostility', rarity:'common', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123415/HIDES_OF_HOSTILITY_cgsgf8.jpg"] },
+  { hero:'Huskar', set:'Sacred Chamber Guardian', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123416/SACRED_CHAMBER_GUARDIAN_klxwle.jpg"] },
+  { hero:'Huskar', set:'The Burning Sentinel', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123415/THE_BURNING_SENTINEL_etyaah.jpg"] },
+  { hero:'Invoker Persona', set:'Angel of Vex', rarity:'mythical', price:15, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123415/ANGEL_OF_VEX_dfjwoc.jpg"] },
+  { hero:'Invoker Persona', set:'Magus Mimicry', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123415/MAGUS_MIMICRY_t4hosy.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123415/MAGUS_MIMICRY_2_nxwrto.jpg"] },
+  { hero:'Invoker Persona', set:'Urchin of Kazim', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123416/URCHIN_OF_KAZIM_oajxel.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123416/URCHIN_OF_KAZIM_2_hjmfnx.jpg"] },
+  { hero:'Jakiro', set:'Ancestral Heritage', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123417/ANCESTRAL_HERITAGE_tnudn0.jpg"] },
+  { hero:'Jakiro', set:'Fissured Flight', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123417/FISSURED_FLIGHT_jx１g３i.jpg"] },
+  { hero:'Juggernaut', set:'Ancient Exile', rarity:'mythical', price:15, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123418/ANCIENT_EXILE_q4wtpl.jpg"] },
+  { hero:'Juggernaut', set:'Lineage of the Stormlords', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123417/LINAGE_OF_THE_STORMLORDS_wrrvmc.jpg"] },
+  { hero:'Keeper of the Light', set:'The King of Thieves', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123417/THE_KING_OF_THIEVES_utlv0m.jpg"] },
+  { hero:'Kunkka', set:'Sea Spirit', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123418/SEA_SPIRIT_xj1oug.jpg"] },
+  { hero:'Legion Commander', set:'Bird of Prey', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123418/BIRD_OF_PREY_zrouom.jpg"] },
+  { hero:'Legion Commander', set:'Triumph of the Imperatrix', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123418/TRIUMPH_OF_THE_IMPERATRIX_vjzfwg.jpg"] },
+  { hero:'Lifestealer', set:'Obsidian Atrocity', rarity:'common', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/OBSIDIAN_ATROCITY_blh8ah.jpg"] },
+  { hero:'Lina', set:'Dead Heat', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/DEAD_HEAT_l0icuu.jpg"] },
+  { hero:'Lina', set:'Flame of Origin', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/FLAME_OF_ORIGIN_snrrrq.jpg"] },
+  { hero:'Lina', set:'Glory of the Elderflame', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/GLORY_OF_THE_ELDERFLAME_ewaub6.jpg"] },
+  { hero:'Lion', set:'Caprine Chimera', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/CAPRINE_CHIMERA_ey6qbc.jpg"] },
+  { hero:'Lion', set:'Nefarious Fixations', rarity:'common', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123430/NEFARIOUS_FIXATIONS_pnxy5i.jpg"] },
+  { hero:'Luna', set:'Bloodmoon Stalker', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/BLOODMOON_STALKER_ssvxab.jpg"] },
+  { hero:'Luna', set:'Seeker of the Crescent Wheel', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/SEEKER_OF_THE_CRESCENT_WHEEL_pemhcy.jpg"] },
+  { hero:'Lycan', set:'Creed of the Skullhound', rarity:'mythical', price:12, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/CREED_OF_THE_SKULLHOUND_uag7r2.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/CREED_OF_THE_SKULLHOUND_2_jx2j0j.jpg"] },
+  { hero:'Marci', set:'Brightfist', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/BRIGHTFIST_koqcfk.jpg"] },
+  { hero:'Marci', set:'Cosmic Cartographer', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/COSMIC_CARTOGRAPHER_xzyxzx.jpg"] },
+  { hero:'Marci', set:'Faithful Fortune', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123432/FAITHFUL_FORTUNE_lefh5f.jpg"] },
+  { hero:'Marci', set:'Little Red', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123431/LITTLE_RED_q2orsf.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123444/LITTLE_RED_2_z0lrqb.jpg"] },
+  { hero:'Marci', set:'School of the Solar Fang', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123444/SCHOOL_OF_THE_SOLAR_FANG_lj2xax.jpg"] },
+  { hero:'Mars', set:'Forgotten Fate', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123444/FORGOTTEN_FATE_xtrul7.jpg"] },
+  { hero:'Mars', set:'Molten Bore', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123444/MOLTEN_BORE_idmtou.jpg"] },
+  { hero:'Medusa', set:'Death Adder', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/DEATH_ADDER_m6xn6j.jpg"] },
+  { hero:'Medusa', set:'Jewels of Anamnessa', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/JEWELS_OF_ANAMNESSA_ee1fuo.jpg"] },
+  { hero:'Meepo', set:'Everglyph Goggles', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123444/EVERGLYPH_GOGGLES_bphxkk.jpg"] },
+  { hero:'Meepo', set:'Lotus of the Mountain Bear Clan', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/LOTUS_OF_THE_MOUNTAIN_BEAR_CLAN_otp1si.jpg"] },
+  { hero:'Mirana', set:'Photax Fluttercat', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/PHOTAX_FLUTTERCAT_hzs3jj.jpg"] },
+  { hero:'Monkey King', set:'Champion of the Fire Lotus', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/CHAMPION_OF_THE_FIRE_LOTUS_quunux.jpg"] },
+  { hero:'Monkey King', set:'Tangled Tropics', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123445/TANGLED_TROPICS_cmwgsz.jpg"] },
+  { hero:'Morphling', set:'Fluid Frenzy', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123446/FLUID_FRENZY_rc7qxh.jpg"] },
+  { hero:'Muerta', set:'Blackwing Bandolera', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123446/BLACKWING_BANDOLERA_uny0wq.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123446/BLACKWING_BANDOLERA_2_tbkfvs.jpg"] },
+  { hero:'Muerta', set:'Mariposa Mori', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123447/MARIPOSA_MORI_mivh8s.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/MARIPOSA_MORI_2_wbns70.jpg"] },
+  { hero:'Muerta', set:'Rose of Moira', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/ROSE_OF_MOIRA_x0cnwg.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/ROSE_OF_MOIRA_2_lx69so.jpg"] },
+  { hero:'Naga Siren', set:'Martyrdom of the Brineborn', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/MARTYRDOM_OF_THE_BRINEBORN_ect2qv.jpg"] },
+  { hero:'Nature\'s Prophet', set:'Desert Bloom', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/DESERT_BLOOM_v7sowd.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123460/DESERT_BLOOM_2_jard7m.jpg"] },
+  { hero:'Nature\'s Prophet', set:'Signs of the Allfather', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123461/SIGNS_OF_THE_ALLFATHER_yvogab.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123461/SIGNS_OF_THE_ALLFATHER_2_mq5urk.jpg"] },
+  { hero:'Necrophos', set:'Golden Sullen Sanctum', rarity:'immortal', price:1.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123461/GOLDEN_SULLEN_SANCTUM_wzxy5f.jpg"] },
+  { hero:'Necrophos', set:'Rot-Iron Ripper', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123461/ROT-IRON_RIPPER_e4ktud.jpg"] },
+  { hero:'Necrophos', set:'Sullen Sanctum', rarity:'immortal', price:0.2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123461/SULLEN_SANCTUM_rywxaf.jpg"] },
+  { hero:'Night Stalker', set:'Dread of Night', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123462/DREAD_OF_NIGHT_zdfnz3.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/DREAD_OF_NIGHT_2_klp6xs.jpg"] },
+  { hero:'Night Stalker', set:'Feasts of Forever', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123473/FEASTS_OF_FOREVER_gixeqd.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/FEASTS_OF_FOREVER_2_lddptw.jpg"] },
+  { hero:'Night Stalker', set:'Origin of the Dark Oath', rarity:'mythical', price:15, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/ORIGIN_OF_THE_DARK_OATH_xbluxv.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/ORIGIN_OF_THE_DARK_OATH_2_ugcsnj.jpg"] },
+  { hero:'Night Stalker', set:'Twilight Legions', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/TWILIGHT_LEGIONS_acmoer.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/TWILIGHT_LEGIONS_2_fkyiaa.jpg"] },
+  { hero:'Nyx Assassin', set:'Mecha Nyx', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123474/MECHA_NYX_qa47g6.jpg"] },
+  { hero:'Ogre Magi', set:'Freeboot Fortunes', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/FREEBOOT_FORTUNES_lkk9na.jpg"] },
+  { hero:'Ogre Magi', set:'Pyrexae Polymorph Perfected', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/PYREXAE_POLYMORPH_PERFECTED_yllrp4.jpg"] },
+  { hero:'Oracle', set:'Foreseen Horizons', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/FORESEEN_HORIZONS_g2bag8.jpg"] },
+  { hero:'Oracle', set:'Silence of the Starweaver', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/SILENCE_OF_THE_STARWEAVER_npm493.jpg"] },
+  { hero:'Oracle', set:'Transcendent Path', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/TRANSCENDENT_PATH_ledhui.jpg"] },
+  { hero:'Pangolier', set:'Tales of the Windward Rogue', rarity:'mythical', price:15, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/TALES_OF_THE_WINDWARD_ROGUE_vqdgq2.jpg"] },
+  { hero:'Phantom Assassin', set:'Darkfeather Factioneer', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123475/DARKFEATHER_FACTIONEER_l1hjxv.jpg"] },
+  { hero:'Phantom Assassin', set:'Onikage Disciple', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123476/ONIKAGE_DISCIPLE_syyrix.jpg"] },
+  { hero:'Phantom Assassin Persona', set:'Phantom\'s Facade', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/PHANTOMS_FACADE_lwzhdi.jpg"] },
+  { hero:'Phantom Assassin Persona', set:'Reaper of the Waning Veil', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/REAPER_OF_THE_WANING_VEIL_yd1t8g.jpg"] },
+  { hero:'Phantom Assassin Persona', set:'Shadow Stalker', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/SHADOW_STALKER_zxpstr.jpg"] },
+  { hero:'Phantom Lancer', set:'Scales of the Shadow Walker', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/SCALES_OF_THE_SHADOW_WALKER_bewees.jpg"] },
+  { hero:'Phoenix', set:'Blaze of Oblivion', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/BLAZE_OF_OBLIVION_mexitp.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/BLAZE_OF_OBLIVION_2_y3iozt.jpg"] },
+  { hero:'Phoenix', set:'Crimson Dawn', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123493/CRIMSON_DAWN_dtwwqj.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123494/CRIMSON_DAWN_2_y7hz4h.jpg"] },
+  { hero:'Phoenix', set:'Star Sage', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123494/STAR_SAGE_pdzdsa.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123494/STAR_SAGE_2_jrmigq.jpg"] },
+  { hero:'Primal Beast', set:'Primeval Abomination', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123495/PRIMEVAL_ABOMINATION_g0lfjx.jpg"] },
+  { hero:'Primal Beast', set:'Svarog the Infernal', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123495/SVAROG_THE_INFERNAL_jbmh0p.jpg"] },
+  { hero:'Pudge', set:'Cursed Cryptbreaker', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/CURSED_CRYPTBREAKER_lmj432.jpg"] },
+  { hero:'Pudge', set:'Dapper Disguise', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123508/DAPPER_DISGUISE_ohgmpk.jpg"] },
+  { hero:'Pudge', set:'Mindless Slaughter', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123508/MINDLESS_SLAUGHTER_fkmzsm.jpg"] },
+  { hero:'Pudge', set:'Rotzo the Clown', rarity:'immortal', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123508/ROTZO_THE_CLOWN_uaonjq.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/ROTZO_THE_CLOWN_2_rgyogi.jpg"] },
+  { hero:'Pudge Persona', set:'Velveteen Vanquisher', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/VELVETEEN_VANQUISHER_pnwcwx.jpg"] },
+  { hero:'Queen of Pain', set:'Exquisite Agonies', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/EXQUISITE_AGONIES_catgsv.jpg"] },
+  { hero:'Razor', set:'Heinous Exultation', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/HEINOUS_EXULTATION_tkjbym.jpg"] },
+  { hero:'Razor', set:'Test of the Basilisk Lord', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/TEST_OF_THE_BASILISK_LORD_zdrctt.jpg"] },
+  { hero:'Riki', set:'Scarlet Subversion', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123509/SCARLET_SUBVERSION_ejhji6.jpg"] },
+  { hero:'Rubick', set:'Carousal of the Mystic Masquerade', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123510/CAROUSAL_OF_THE_MYSTIC_MASQUERADE_yxukf9.jpg"] },
+  { hero:'Rubick', set:'March of the Crackerjack Mage', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123510/MARCH_OF_THE_CRACKERJACK_MAGE_vxlq4i.jpg"] },
+  { hero:'Shadow Demon', set:'Crown of Calaphas', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123510/CROWN_OF_CALAPHAS_uzrizj.jpg"] },
+  { hero:'Shadow Demon', set:'Vile Vessel', rarity:'immortal', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123512/VILE_VESSEL_ifvcm8.jpg"] },
+  { hero:'Shadow Fiend', set:'Souls Tyrant', rarity:'mythical', price:18, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123527/SOULS_TYRANT_n6wtj5.jpg"] },
+  { hero:'Shadow Shaman', set:'Red Sands Marauder', rarity:'mythical', price:9, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123528/RED_SANDS_MARAUDER_she7s9.jpg"] },
+  { hero:'Silencer', set:'Grand Suppressor', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123528/GRAND_SUPPRESSOR_ch6ejv.jpg"] },
+  { hero:'Silencer', set:'Silent Slayer', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/SILENT_SLAYER_zbudtf.jpg"] },
+  { hero:'Silencer', set:'Worship of the Whispered Wing', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/WORSHIP_OF_THE_WHISPERED_WING_m1rzh4.jpg"] },
+  { hero:'Skywrath Mage', set:'Eyriebound Imperator', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123528/EYRIEBOUND_IMPERATOR_dvxe2x.jpg"] },
+  { hero:'Skywrath Mage', set:'Secrets of the Celestial', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123528/SECRETS_OF_THE_CELESTIAL_hpaid3.jpg"] },
+  { hero:'Slark', set:'Angler in the Abyss', rarity:'mythical', price:2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123528/ANGLER_IN_THE_ABYSS_mkqm6d.jpg"] },
+  { hero:'Snapfire', set:'Ardalan Arms Race', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123529/ARDALAN_ARMS_RACE_hmf97a.jpg"] },
+  { hero:'Snapfire', set:'Shellshock Saturnalia', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123529/SHELLSHOCK_SATURNALIA_kbtnse.jpg"] },
+  { hero:'Snapfire', set:'Snailfire', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123529/SNAILFIRE_m3ifni.jpg"] },
+  { hero:'Snapfire', set:'Wasteland Rattler', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/WATELAND_RATTLER_qng4hx.jpg"] },
+  { hero:'Snapfire', set:'Whippersnapper', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/WHIPPERSNAPPER_n4xuck.jpg"] },
+  { hero:'Sniper', set:'Blacksail Cannoneer', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/BLACKSAIL_CANNONEER_vhovky.jpg"] },
+  { hero:'Spectre', set:'Crescent Huntress', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/CRESCENT_HUNTRESS_jeigmj.jpg"] },
+  { hero:'Spectre', set:'Spoils of the Shadowveil', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123530/SPOILS_OF_THE_SHADOWVEIL_b9iwsj.jpg"] },
+  { hero:'Spirit Breaker', set:'Barathrums Fury', rarity:'common', price:2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123551/BARATHRUMS_FURY_ku3b1t.jpg"] },
+  { hero:'Spirit Breaker', set:'Crystal Colossus', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/CRYSTAL_COLOSSUS_szuclg.jpg"] },
+  { hero:'Spirit Breaker', set:'Taurhorn Terror', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123554/TAURHORN_TERROR_xxzrro.jpg"] },
+  { hero:'Spirit Breaker', set:'Taurid Twilight', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/TAURID_TWILIGHT_mazehk.jpg"] },
+  { hero:'Storm Spirit', set:'Beast of Thunder', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/BEAST_OF_THUNDER_zcblkk.jpg"] },
+  { hero:'Sven', set:'Astral Schism', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123552/ASTRAL_SCHISM_tosimr.jpg"] },
+  { hero:'Sven', set:'Indomitable Legacy', rarity:'mythical', price:100, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/INDOMITABLE_LEGACY_hsvc6b.jpg"] },
+  { hero:'Sven', set:'Watcher on the Northern Shore', rarity:'rare', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/WATCHER_ON_THE_NORTHERN_SHORE_j05w9v.jpg"] },
+  { hero:'Techies', set:'War Rig Eradicators', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/WAR_RIG_ERADICATORS_vtvke8.jpg"] },
+  { hero:'Templar Assassin', set:'Darkblade Adept', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/DARKBLADE_ADEPT_e2j5db.jpg"] },
+  { hero:'Templar Assassin', set:'Faction of the Feather', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/FACTION_OF_THE_FEATHER_ihhpca.jpg"] },
+  { hero:'Templar Assassin', set:'Golden Seclusions of the Void', rarity:'immortal', price:0.3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123554/GOLDEN_SECLUSIONS_OF_THE_VOID_pgd2st.jpg"] },
+  { hero:'Templar Assassin', set:'Seclusions of the Void', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123553/SECLUSIONS_OF_THE_VOID_iolibs.jpg"] },
+  { hero:'Templar Assassin', set:'Steward of the Forbidden Chamber', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123554/STEWARD_OF_THE_FORBIDDEN_CHAMBER_kty9a4.jpg"] },
+  { hero:'Terrorblade', set:'Forgotten Station', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123554/FORGOTTEN_STATION_rgznbf.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/FORGOTTEN_STATION_2_wobuai.jpg"] },
+  { hero:'Tidehunter', set:'Horror from the Deep', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/HORROR_FROM_THE_DEEP_rpuexm.jpg"] },
+  { hero:'Timbersaw', set:'Clearcut Cavalier', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/CLEARCUT_CAVALIER_bfdijg.jpg"] },
+  { hero:'Tinker', set:'Interstellar Astrarium', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/INTERESTELLAR_ASTRARIUM_p0eoqs.jpg"] },
+  { hero:'Tiny', set:'Ancient Inheritance', rarity:'mythical', price:12, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/ANCIENT_INHERITANCE_jnq0zq.jpg"] },
+  { hero:'Tiny', set:'Anthozoan Assault', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123575/ANTHOZOAN_ASSAULT_wfgk92.jpg"] },
+  { hero:'Tiny', set:'Colossal Terrorpin', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/COLOSSAL_TERRORPIN_k5prp1.jpg"] },
+  { hero:'Treant Protector', set:'Grudges of the Gallows Tree', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/GRUDES_OF_THE_GALLOWS_TREE_pgmjsw.jpg"] },
+  { hero:'Tusk', set:'Distinguished Expeditionary', rarity:'mythical', price:8, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/DISTINGUISHED_EXPEDITIONARY_zbbbun.jpg"] },
+  { hero:'Undying', set:'Dirge Amplifier', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/DIRGE_AMPLIFIER_v4vsoo.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/DIRGE_AMPLIFIER_2_vnit2o.jpg"] },
+  { hero:'Undying', set:'Undying Love', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/UNDYING_LOVE_jw24xz.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123576/UNDYING_LOVE_2_oktvki.jpg"] },
+  { hero:'Ursa', set:'Bloodzo the Bear', rarity:'mythical', price:3, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123577/BLOODZO_THE_BEAR_li9ivo.jpg"] },
+  { hero:'Ursa', set:'Trophies of the Hallowed Hunt', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123577/TROPHIES_OF_THE_HALLOWED_HUNT_vpoo5b.jpg"] },
+  { hero:'Vengeful Spirit', set:'Acrimonies of Obsession', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123577/ACRIMONIES_OF_OBSESSION_rdwnrl.jpg"] },
+  { hero:'Venomancer', set:'Mechamancer', rarity:'mythical', price:7, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123577/MECHAMANCER_g2cbtt.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123577/MECHAMANCER_2_zs4y84.jpg"] },
+  { hero:'Venomancer', set:'Molokau Stalker', rarity:'mythical', price:2, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123596/MOLOKAU_STALKER_rzr0y1.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123604/MOLOKAU_STALKER_2_xhshum.jpg"] },
+  { hero:'Venomancer', set:'The Orb of Aktok', rarity:'immortal', price:0.1, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123605/THE_ORB_OF_AKTOK_fnxlrh.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123605/THE_ORB_OF_AKTOK_2_mcrfyb.jpg"] },
+  { hero:'Void Spirit', set:'Sublime Equilibrium', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123606/SUBLIME_EQUILIBRIUM_izuabc.jpg"] },
+  { hero:'Void Spirit', set:'Umbral Expanse', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123607/UMBRAL_EXPANSE_vdgjgv.jpg"] },
+  { hero:'Warlock', set:'Beholden of the Banished Ones', rarity:'mythical', price:10, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123607/BEHOLDEN_OF_THE_BANISHED_ONES_hvyb9j.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123616/BEHOLDEN_OF_THE_BANISHED_ONES_2_vvcy1r.jpg"] },
+  { hero:'Warlock', set:'Seam Ripper Snuggle Time', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/SEAM_RIPPER_SNUGGLE_TIME_pviuiq.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/SEAM_RIPPER_SNUGGLE_TIME_2_xwhd49.jpg"] },
+  { hero:'Warlock', set:'Tribal Pathways', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/TRIBAL_PATHWAYS_xvzgjo.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/TRIBAL_PATHWAYS_2_pgqcox.jpg"] },
+  { hero:'Winter Wyvern', set:'Arctic Recluse', rarity:'rare', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/ARCTIC_RECLUSE_e7nca4.jpg"] },
+  { hero:'Winter Wyvern', set:'Defender of the Brumal Crest', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/DEFENDER_OF_THE_BRUMAL_CREST_nuxm3s.jpg"] },
+  { hero:'Witch Doctor', set:'Deathstitch Shaman', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/DEATHSTITCH_SHAMAN_as66w8.jpg","https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123618/DEATHSTITCH_SHAMAN_2_swsw0u.jpg"] },
+  { hero:'Wraith King', set:'Grim Destiny', rarity:'mythical', price:6, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123617/GRIM_DESTINY_ywtenp.jpg"] },
+  { hero:'Wraith King', set:'Tyrant of the Veil', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123618/TYRANT_OF_THE_VEIL_wifinu.jpg"] },
+  { hero:'Zeus', set:'Fury of the Thunderhawk', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123618/FURY_OF_THE_THUNDERHAWK_huefmi.jpg"] },
+  { hero:'Zeus', set:'Photonic Father', rarity:'mythical', price:4, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123619/PHOTONIC_FATHER_vc7m1i.jpg"] },
+  { hero:'Zeus', set:'Thundervolt', rarity:'mythical', price:5, stock:1, images:["https://res.cloudinary.com/dxte0oxyq/image/upload/v1774123640/THUNDERVOLT_elaiwr.jpg"] },
+];
+
+const PER_PAGE = 10;
+let currentPage = 1;
+let currentRarity = 'all';
+let currentQuery = '';
+let filtered = [...SETS];
+
+/* ── placeholder image generator (used until Cloudinary URLs are set) ── */
+function makePlaceholder(hero, idx = 0) {
+  const init = hero.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const seed = hero.split('').reduce((a,c) => a + c.charCodeAt(0), 0) + idx * 31;
+  const hue  = (seed * 37) % 360;
+  const svg  = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+    <defs>
+      <radialGradient id="g" cx="50%" cy="42%" r="65%">
+        <stop offset="0%" stop-color="hsl(${hue},20%,12%)"/>
+        <stop offset="100%" stop-color="#070707"/>
+      </radialGradient>
+      <pattern id="x" width="44" height="44" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="44" x2="44" y2="0" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="600" height="600" fill="url(#g)"/>
+    <rect width="600" height="600" fill="url(#x)"/>
+    <text x="300" y="335" text-anchor="middle" dominant-baseline="middle"
+      font-family="sans-serif" font-weight="800" font-size="160"
+      letter-spacing="8" fill="rgba(255,255,255,0.05)">${init}</text>
+    <text x="300" y="465" text-anchor="middle"
+      font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.13)"
+      letter-spacing="4">${hero.toUpperCase()}${idx ? ' · ' + (idx+1) : ''}</text>
+  </svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+/* Each set always has a usable images array — synthesize 4 placeholders if none are set */
+function imagesFor(item) {
+  if (item.images && item.images.length) return item.images;
+  return [0,1,2,3].map(i => makePlaceholder(item.hero, i));
+}
+function thumbFor(item) {
+  return imagesFor(item)[0];
+}
+
+/* ── filter ── */
+function applyFilters() {
+  const q = currentQuery.trim().toLowerCase();
+  filtered = SETS.filter(s => {
+    if (currentRarity !== 'all' && s.rarity !== currentRarity) return false;
+    if (q && !s.hero.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  currentPage = 1;
+  renderCards();
+}
+
+/* ── render cards ── */
+function renderCards() {
+  const grid = document.getElementById('card-grid');
+  const start = (currentPage - 1) * PER_PAGE;
+  const page  = filtered.slice(start, start + PER_PAGE);
+  grid.innerHTML = '';
+
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div class="empty">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          <path d="M8 11h6M11 8v6" opacity="0.4"/>
+        </svg>
+        <p>No sets match these filters.</p>
+      </div>`;
+    updateCount();
+    renderPagination();
+    return;
+  }
+
+  page.forEach((item, i) => {
+    const realIdx = start + i;
+    const itemIdx = SETS.indexOf(item);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = itemIdx;
+    card.innerHTML = `
+      <div class="card-img">
+        <img src="${thumbFor(item)}" alt="${item.hero} — ${item.set}" loading="lazy" width="600" height="600">
+        ${imagesFor(item).length > 1 ? `
+          <div class="card-img-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="14" height="14" rx="1.5"/><path d="M7 7h14v14H7z"/>
+            </svg>
+            ${imagesFor(item).length}
+          </div>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-hero">${item.hero}</div>
+        <div class="card-set">${item.set}</div>
+        <div class="card-foot">
+          <div class="card-price">$${item.price}.00</div>
+          <div class="card-rarity" data-r="${item.rarity}"><span class="rdot" data-r="${item.rarity}"></span>${item.rarity}</div>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => openLightbox(itemIdx));
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add('in'), i * 48);
+  });
+
+  updateCount();
+  renderPagination();
+}
+
+function updateCount() {
+  const el = document.getElementById('results-count');
+  if (!filtered.length) { el.textContent = 'No results found'; return; }
+  const s = (currentPage - 1) * PER_PAGE + 1;
+  const e = Math.min(currentPage * PER_PAGE, filtered.length);
+  el.innerHTML = `Showing <strong>${s}–${e}</strong> of <strong>${filtered.length}</strong> cache sets`;
+}
+
+/* ── pagination ── */
+function renderPagination() {
+  const pag   = document.getElementById('pagination');
+  const total = Math.ceil(filtered.length / PER_PAGE);
+  pag.innerHTML = '';
+  if (total <= 1) return;
+
+  const add = (label, page, disabled, active) => {
+    const btn = document.createElement('button');
+    btn.className = 'pg-btn' + (active ? ' active' : '');
+    btn.innerHTML  = label;
+    btn.disabled   = disabled;
+    if (!disabled && !active && page !== null) {
+      btn.onclick = () => { currentPage = page; renderCards(); window.scrollTo({top:0,behavior:'smooth'}); };
+    }
+    pag.appendChild(btn);
+  };
+
+  add('&#8592;', currentPage - 1, currentPage === 1, false);
+  pageRange(currentPage, total).forEach(p => {
+    if (p === '…') add('…', null, true, false);
+    else add(p, p, false, p === currentPage);
+  });
+  add('&#8594;', currentPage + 1, currentPage === total, false);
+}
+function pageRange(cur, tot) {
+  if (tot <= 7) return Array.from({length: tot}, (_, i) => i + 1);
+  if (cur <= 4) return [1,2,3,4,5,'…',tot];
+  if (cur >= tot - 3) return [1,'…',tot-4,tot-3,tot-2,tot-1,tot];
+  return [1,'…',cur-1,cur,cur+1,'…',tot];
+}
+
+/* ── search ── */
+['search-desktop','search-mobile'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', e => {
+    const v = e.target.value;
+    ['search-desktop','search-mobile'].forEach(sid => {
+      const o = document.getElementById(sid);
+      if (o && o !== e.target) o.value = v;
+    });
+    currentQuery = v;
+    applyFilters();
+  });
+});
+
+/* ── language switcher (UI only) ── */
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+/* ── rarity filter ── */
+document.querySelectorAll('#rarity-filter .year-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#rarity-filter .year-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRarity = btn.dataset.rarity;
+    applyFilters();
+  });
+});
+
+/* ════════════════════════════════════════
+   LIGHTBOX
+════════════════════════════════════════ */
+const lb         = document.getElementById('lightbox');
+const lbHero     = document.getElementById('lb-hero');
+const lbSet      = document.getElementById('lb-set');
+const lbPrice    = document.getElementById('lb-price');
+const lbYear     = document.getElementById('lb-year');
+const lbWrap     = document.getElementById('lb-image-wrap');
+const lbCounter  = document.getElementById('lb-counter');
+const lbThumbs   = document.getElementById('lb-thumbs');
+const lbPrev     = document.getElementById('lb-prev');
+const lbNext     = document.getElementById('lb-next');
+const lbClose    = document.getElementById('lb-close');
+const lbStage    = document.getElementById('lb-stage');
+
+let lbCurrentItem = null;
+let lbCurrentIdx  = 0;
+
+function openLightbox(itemIdx) {
+  const item = SETS[itemIdx];
+  if (!item) return;
+  lbCurrentItem = item;
+  lbCurrentIdx  = 0;
+  lbHero.textContent  = item.hero;
+  lbSet.textContent   = item.set;
+  lbPrice.textContent = '$' + item.price + '.00';
+  lbYear.innerHTML  = `<span class="rdot" data-r="${item.rarity}" style="margin-right:7px;vertical-align:middle"></span><span style="vertical-align:middle;text-transform:uppercase;letter-spacing:0.16em;font-size:11.5px">${item.rarity}</span>`;
+  renderLbImage();
+  renderLbThumbs();
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+  lbCurrentItem = null;
+}
+function renderLbImage() {
+  if (!lbCurrentItem) return;
+  const imgs = imagesFor(lbCurrentItem);
+  const src  = imgs[lbCurrentIdx];
+  lbWrap.innerHTML = '';
+  const img = document.createElement('img');
+  img.className = 'lb-image';
+  img.src = src;
+  img.alt = `${lbCurrentItem.hero} — ${lbCurrentItem.set}`;
+  lbWrap.appendChild(img);
+
+  lbCounter.innerHTML = `<span>${lbCurrentIdx + 1}</span> / ${imgs.length}`;
+  lbPrev.disabled = lbCurrentIdx === 0;
+  lbNext.disabled = lbCurrentIdx === imgs.length - 1;
+
+  // update active thumbnail
+  const thumbs = lbThumbs.querySelectorAll('.lb-thumb');
+  thumbs.forEach((t, i) => t.classList.toggle('active', i === lbCurrentIdx));
+}
+function renderLbThumbs() {
+  if (!lbCurrentItem) return;
+  const imgs = imagesFor(lbCurrentItem);
+  lbThumbs.innerHTML = '';
+  if (imgs.length <= 1) { lbThumbs.style.display = 'none'; return; }
+  lbThumbs.style.display = 'flex';
+  imgs.forEach((src, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'lb-thumb' + (i === lbCurrentIdx ? ' active' : '');
+    btn.innerHTML = `<img src="${src}" alt="" loading="lazy">`;
+    btn.addEventListener('click', e => { e.stopPropagation(); lbCurrentIdx = i; renderLbImage(); });
+    lbThumbs.appendChild(btn);
+  });
+}
+function lbStep(dir) {
+  if (!lbCurrentItem) return;
+  const imgs = imagesFor(lbCurrentItem);
+  const next = lbCurrentIdx + dir;
+  if (next < 0 || next >= imgs.length) return;
+  lbCurrentIdx = next;
+  renderLbImage();
+}
+
+lbPrev.addEventListener('click', e => { e.stopPropagation(); lbStep(-1); });
+lbNext.addEventListener('click', e => { e.stopPropagation(); lbStep(1); });
+lbClose.addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
+
+/* click on backdrop closes; clicks inside stage do not */
+lb.addEventListener('click', e => {
+  if (e.target === lb) closeLightbox();
+});
+lbStage.addEventListener('click', e => {
+  /* clicks on the empty stage area (not the image / arrows) close too */
+  if (e.target === lbStage || e.target === lbWrap) closeLightbox();
+});
+
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')      closeLightbox();
+  else if (e.key === 'ArrowLeft')  lbStep(-1);
+  else if (e.key === 'ArrowRight') lbStep(1);
+});
+
+/* ════════════════════════════════════════
+   PARTICLE SYSTEM (main page) — sparse ember/dust
+════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize, { passive: true });
+  resize();
+
+  const COUNT = 55;
+  const ps = [];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function spawn(fromBottom) {
+    return {
+      x: rnd(0, W),
+      y: fromBottom ? H + rnd(0, 40) : rnd(0, H),
+      vx: rnd(-0.1, 0.1),
+      vy: rnd(-0.32, -0.07),
+      r: rnd(0.5, 1.7),
+      a: rnd(0.08, 0.42),
+      da: rnd(-0.0008, 0.0008),
+      w: rnd(0, Math.PI * 2),
+      ws: rnd(0.006, 0.018),
+      ember: Math.random() < 0.22,
+    };
+  }
+  for (let i = 0; i < COUNT; i++) ps.push(spawn(false));
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      p.w += p.ws;
+      p.x += p.vx + Math.sin(p.w) * 0.07;
+      p.y += p.vy;
+      p.a = Math.max(0.04, Math.min(0.45, p.a + p.da));
+      const fade = Math.min(1, p.y / (H * 0.15));
+      const a = p.a * fade;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.ember
+        ? `rgba(180,35,15,${a * 0.7})`
+        : `rgba(180,175,170,${a * 0.32})`;
+      ctx.fill();
+      if (p.y < -10) ps[i] = spawn(true);
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ════════════════════════════════════════
+   INTRO — embers from campfire + parallax
+════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('intro-canvas');
+  const ctx    = canvas.getContext('2d');
+  const intro  = document.getElementById('intro');
+  const parallax = document.getElementById('intro-parallax');
+  let W, H;
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  const ps = [];
+  const COUNT = 18;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  /* Campfire is centered horizontally, ~70% down */
+  function spawn() {
+    const cx = W * 0.5 + rnd(-W * 0.06, W * 0.06);
+    const cy = H * 0.7 + rnd(-12, 14);
+    return {
+      x: cx,
+      y: cy,
+      vx: rnd(-0.18, 0.18),
+      vy: rnd(-0.85, -0.45),
+      r: rnd(1.2, 2.4),
+      life: 0,
+      maxLife: rnd(160, 320),
+      hueRoll: rnd(0, 1),
+    };
+  }
+  for (let i = 0; i < COUNT; i++) {
+    const p = spawn();
+    p.life = Math.random() * p.maxLife;
+    ps.push(p);
+  }
+  function tick() {
+    if (intro.classList.contains('fade')) return;
+    ctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      p.x += p.vx + Math.sin(p.life * 0.05) * 0.12;
+      p.y += p.vy;
+      p.vy *= 0.998;
+      p.life++;
+      const t = p.life / p.maxLife;
+      const a = (1 - t) * 0.85;
+      const r = p.r * (1 - t * 0.4);
+      // color: hot orange near base → red as it cools
+      const hot = p.hueRoll < 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
+      const core = hot ? '255, 140, 40' : '220, 50, 20';
+      grd.addColorStop(0, `rgba(${core}, ${a})`);
+      grd.addColorStop(0.4, `rgba(${core}, ${a * 0.4})`);
+      grd.addColorStop(1, `rgba(180, 30, 15, 0)`);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      // bright core
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 200, 110, ${a * 0.6})`;
+      ctx.fill();
+      if (p.life >= p.maxLife) ps[i] = spawn();
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  /* ── Mouse parallax ── */
+  let targetX = 0, targetY = 0, curX = 0, curY = 0;
+  const MAX = 15;
+  document.addEventListener('mousemove', e => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const nx = (e.clientX - cx) / cx;
+    const ny = (e.clientY - cy) / cy;
+    // OPPOSITE direction
+    targetX = -nx * MAX;
+    targetY = -ny * MAX;
+  });
+  function paraTick() {
+    curX += (targetX - curX) * 0.06;
+    curY += (targetY - curY) * 0.06;
+    if (parallax) parallax.style.transform = `translate(${curX}px, ${curY}px)`;
+    /* also subtly shift the persistent bg image */
+    const bg = document.getElementById('bg-image');
+    if (bg) bg.style.transform = `translate(${curX * 0.5}px, ${curY * 0.5}px)`;
+    requestAnimationFrame(paraTick);
+  }
+  paraTick();
+})();
+
+/* ════════════════════════════════════════
+   INTRO SEQUENCE
+════════════════════════════════════════ */
+function startApp() {
+  const intro = document.getElementById('intro');
+  const app   = document.getElementById('app');
+  intro.classList.add('fade');
+  app.classList.add('show');
+}
+
+/* ── init ── */
+applyFilters();
+setTimeout(startApp, 3000);
+</script>
+</body>
+</html>

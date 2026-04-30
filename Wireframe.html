@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dota 2 Cache Marketplace — Wireframe</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f4f0; font-family: 'Caveat', cursive; }
+
+  /* Sketch aesthetic globals */
+  .sketch-border { border: 2px solid #222; }
+  .sketch-box {
+    border: 2px solid #222;
+    border-radius: 3px;
+    background: #fff;
+    position: relative;
+  }
+  .sketch-box::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px dashed #ccc;
+    pointer-events: none;
+    border-radius: 2px;
+  }
+  .sketch-fill { background: #e8e8e8; border: 2px solid #222; border-radius: 3px; }
+  .sketch-fill-dark { background: #333; border: 2px solid #111; border-radius: 3px; color: #fff; }
+  .sketch-fill-mid { background: #bbb; border: 2px solid #222; border-radius: 3px; }
+  .sketch-pill {
+    border: 2px solid #222;
+    border-radius: 20px;
+    background: #fff;
+    padding: 3px 10px;
+    font-family: 'Caveat', cursive;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sketch-pill-dark {
+    border: 2px solid #111;
+    border-radius: 20px;
+    background: #333;
+    color: #fff;
+    padding: 3px 10px;
+    font-family: 'Caveat', cursive;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .label {
+    font-family: 'Caveat', cursive;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.2;
+  }
+  .label-dark {
+    font-family: 'Caveat', cursive;
+    font-size: 13px;
+    color: #111;
+    font-weight: 600;
+  }
+
+  /* image placeholder */
+  .img-placeholder {
+    background: repeating-linear-gradient(
+      45deg,
+      #ddd,
+      #ddd 4px,
+      #f0f0f0 4px,
+      #f0f0f0 10px
+    );
+    border: 2px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Caveat', cursive;
+    font-size: 12px;
+    color: #666;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<script type="text/babel">
+
+/* ─── Shared sketch primitives ─── */
+const Box = ({ style, children, className = '' }) => (
+  <div className={`sketch-box ${className}`} style={style}>{children}</div>
+);
+const Fill = ({ style, children, dark, mid }) => (
+  <div className={dark ? 'sketch-fill-dark' : mid ? 'sketch-fill-mid' : 'sketch-fill'} style={style}>{children}</div>
+);
+const Pill = ({ children, dark, style }) => (
+  <span className={dark ? 'sketch-pill-dark' : 'sketch-pill'} style={style}>{children}</span>
+);
+const ImgPlaceholder = ({ style, label = 'hero image' }) => (
+  <div className="img-placeholder" style={style}>
+    <span>{label}</span>
+  </div>
+);
+const Annotation = ({ children, style }) => (
+  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 12, color: '#888', fontStyle: 'italic', ...style }}>
+    ← {children}
+  </div>
+);
+
+/* ─── Item Card ─── */
+function ItemCard({ heroName = 'Invoker', setName = 'Fractal Horns of Inner Abysm', price = '$12.00', width = 140 }) {
+  return (
+    <Box style={{ width, padding: 0, overflow: 'hidden' }}>
+      <ImgPlaceholder style={{ width: '100%', height: width * 0.75 }} label={heroName} />
+      <div style={{ padding: '6px 7px 8px' }}>
+        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 13, color: '#555', fontWeight: 600 }}>{heroName}</div>
+        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 12, color: '#222', lineHeight: 1.3, marginTop: 1 }}>{setName}</div>
+        <div style={{ fontFamily: "'Caveat', cursive", fontSize: 15, fontWeight: 700, marginTop: 5, color: '#111' }}>{price}</div>
+      </div>
+    </Box>
+  );
+}
+
+/* ─── Pagination ─── */
+function Pagination({ mobile }) {
+  const pages = [1, 2, 3, '...', 8];
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: mobile ? 5 : 8, flexWrap: 'wrap' }}>
+      <Pill style={{ padding: '4px 10px', fontSize: 14 }}>← Prev</Pill>
+      {pages.map((p, i) => (
+        <Pill key={i} dark={p === 1} style={{ padding: '4px 10px', fontSize: 14, minWidth: 32, justifyContent: 'center' }}>{p}</Pill>
+      ))}
+      <Pill style={{ padding: '4px 10px', fontSize: 14 }}>Next →</Pill>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE WIREFRAME  (390px wide)
+═══════════════════════════════════════════ */
+function MobileWireframe() {
+  const cards = [
+    { hero: 'Invoker', set: 'Fractal Horns', price: '$12' },
+    { hero: 'Pudge', set: 'Feast of Abscession', price: '$8' },
+    { hero: 'Anti-Mage', set: 'Dread Compact', price: '$15' },
+    { hero: 'Crystal Maiden', set: 'Permafrost', price: '$6' },
+    { hero: 'Juggernaut', set: 'Bladeform Legacy', price: '$20' },
+    { hero: 'Phantom Lancer', set: 'Spectre of the Sacred Arrow', price: '$9' },
+    { hero: 'Lina', set: 'Fiery Soul of the Slayer', price: '$11' },
+    { hero: 'Axe', set: 'Call of the Bladeform Aesthete', price: '$7' },
+    { hero: 'Windranger', set: 'Echoes of the Eyrie', price: '$13' },
+    { hero: 'Dragon Knight', set: 'Dragon Forged', price: '$10' },
+  ];
+
+  return (
+    <div style={{ width: 390, fontFamily: "'Caveat', cursive", background: '#fafaf8', border: '2px solid #222', borderRadius: 4, overflow: 'hidden' }}>
+
+      {/* HEADER */}
+      <Fill dark style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 18, color: '#fff', letterSpacing: 0.5 }}>
+          ⚔ DOTA2 CACHE
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Pill dark style={{ fontSize: 11, padding: '2px 8px', border: '1.5px solid #888' }}>EN ▾</Pill>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#555', border: '2px solid #888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>☰</div>
+        </div>
+      </Fill>
+
+      {/* CONTACT BUTTONS - below header on mobile */}
+      <div style={{ padding: '8px 14px', display: 'flex', gap: 8, background: '#f0eeea', borderBottom: '2px solid #ddd' }}>
+        <Pill style={{ flex: 1, justifyContent: 'center', fontSize: 13, padding: '5px 0' }}>🎮 Steam</Pill>
+        <Pill style={{ flex: 1, justifyContent: 'center', fontSize: 13, padding: '5px 0' }}>💬 WhatsApp</Pill>
+      </div>
+
+      {/* SEARCH */}
+      <div style={{ padding: '12px 14px' }}>
+        <Box style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, background: '#fff' }}>
+          <span style={{ fontSize: 16 }}>🔍</span>
+          <span style={{ color: '#aaa', fontFamily: "'Caveat', cursive", fontSize: 15 }}>Search by hero name…</span>
+        </Box>
+      </div>
+
+      {/* RESULTS COUNT */}
+      <div style={{ padding: '0 14px 8px', fontFamily: "'Caveat', cursive", fontSize: 13, color: '#888' }}>
+        Showing 1–10 of 78 sets
+      </div>
+
+      {/* CARD GRID — 2 col */}
+      <div style={{ padding: '0 14px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {cards.map((c, i) => (
+          <ItemCard key={i} heroName={c.hero} setName={c.set} price={c.price} width={171} />
+        ))}
+      </div>
+
+      {/* PAGINATION */}
+      <div style={{ padding: '8px 14px 16px', borderTop: '2px solid #ddd', background: '#f0eeea' }}>
+        <Pagination mobile />
+      </div>
+
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════
+   DESKTOP WIREFRAME  (1200px wide)
+═══════════════════════════════════════════ */
+function DesktopWireframe() {
+  const cards = [
+    { hero: 'Invoker', set: 'Fractal Horns of Inner Abysm', price: '$12' },
+    { hero: 'Pudge', set: 'Feast of Abscession', price: '$8' },
+    { hero: 'Anti-Mage', set: 'Dread Compact', price: '$15' },
+    { hero: 'Crystal Maiden', set: 'Permafrost', price: '$6' },
+    { hero: 'Juggernaut', set: 'Bladeform Legacy', price: '$20' },
+    { hero: 'Phantom Lancer', set: 'Spectre of Sacred Arrow', price: '$9' },
+    { hero: 'Lina', set: 'Fiery Soul of the Slayer', price: '$11' },
+    { hero: 'Axe', set: 'Call of Bladeform Aesthete', price: '$7' },
+    { hero: 'Windranger', set: 'Echoes of the Eyrie', price: '$13' },
+    { hero: 'Dragon Knight', set: 'Dragon Forged', price: '$10' },
+  ];
+
+  return (
+    <div style={{ width: 1200, fontFamily: "'Caveat', cursive", background: '#fafaf8', border: '2px solid #222', borderRadius: 4, overflow: 'hidden' }}>
+
+      {/* HEADER */}
+      <Fill dark style={{ padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 24 }}>
+        {/* Logo */}
+        <div style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: 22, color: '#fff', whiteSpace: 'nowrap', marginRight: 8 }}>
+          ⚔ DOTA2 CACHE
+        </div>
+
+        {/* Search — center */}
+        <Box style={{ flex: 1, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 10, background: '#fff' }}>
+          <span style={{ fontSize: 16 }}>🔍</span>
+          <span style={{ color: '#aaa', fontFamily: "'Caveat', cursive", fontSize: 15 }}>Search by hero name…</span>
+        </Box>
+
+        {/* Right side controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+          <Pill dark style={{ fontSize: 13, border: '1.5px solid #888' }}>EN ▾</Pill>
+          <Pill dark style={{ fontSize: 13, border: '1.5px solid #888' }}>ES</Pill>
+          <Pill dark style={{ fontSize: 13, border: '1.5px solid #888' }}>RU</Pill>
+          <div style={{ width: 1, height: 24, background: '#555', margin: '0 4px' }}></div>
+          <Pill style={{ fontSize: 13, background: '#fff' }}>🎮 Steam</Pill>
+          <Pill style={{ fontSize: 13, background: '#fff' }}>💬 WhatsApp</Pill>
+        </div>
+      </Fill>
+
+      {/* SUBBAR */}
+      <div style={{ padding: '8px 32px', background: '#f0eeea', borderBottom: '2px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: "'Caveat', cursive", fontSize: 14, color: '#888' }}>
+          Showing <strong>1–10</strong> of <strong>78</strong> cache sets
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: "'Caveat', cursive", fontSize: 14, color: '#888' }}>Sort by:</span>
+          <Pill style={{ fontSize: 13 }}>Price ▾</Pill>
+        </div>
+      </div>
+
+      {/* CARD GRID — 5 col */}
+      <div style={{ padding: '20px 32px 24px', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+        {cards.map((c, i) => (
+          <ItemCard key={i} heroName={c.hero} setName={c.set} price={c.price} width={196} />
+        ))}
+      </div>
+
+      {/* PAGINATION */}
+      <div style={{ padding: '12px 32px 20px', borderTop: '2px solid #ddd', background: '#f0eeea' }}>
+        <Pagination />
+      </div>
+
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ROOT — Design Canvas
+═══════════════════════════════════════════ */
+function App() {
+  return (
+    <DesignCanvas title="Dota 2 Cache Marketplace — Wireframe">
+      <DCSection id="layouts" title="Layout Explorations">
+        <DCArtboard id="mobile" label="Mobile (390px)" width={430} height={1060}>
+          <div style={{ padding: 20 }}>
+            <MobileWireframe />
+          </div>
+        </DCArtboard>
+        <DCArtboard id="desktop" label="Desktop (1200px)" width={1264} height={680}>
+          <div style={{ padding: 20 }}>
+            <DesktopWireframe />
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="notes" title="Layout Notes">
+        <DCArtboard id="note-mobile" label="Mobile decisions" width={340} height={380}>
+          <div style={{ padding: 20, fontFamily: "'Caveat', cursive", lineHeight: 1.7, fontSize: 15, color: '#222' }}>
+            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 10, borderBottom: '2px solid #222', paddingBottom: 4 }}>📱 Mobile Layout</div>
+            <ul style={{ paddingLeft: 18 }}>
+              <li>2-column card grid (fits 2×5 = 10 per page)</li>
+              <li>Lang switcher collapsed into ☰ menu or inline pill</li>
+              <li>Steam + WhatsApp as full-width row below header</li>
+              <li>Search bar full width under header</li>
+              <li>Pagination wraps with prev/next clearly tappable</li>
+              <li>Card hit area ≥ 44px everywhere</li>
+            </ul>
+            <div style={{ marginTop: 12, color: '#888', fontSize: 13 }}>
+              Q: Should the lang switcher live in a drawer, or always visible?
+            </div>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="note-desktop" label="Desktop decisions" width={340} height={380}>
+          <div style={{ padding: 20, fontFamily: "'Caveat', cursive", lineHeight: 1.7, fontSize: 15, color: '#222' }}>
+            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 10, borderBottom: '2px solid #222', paddingBottom: 4 }}>🖥 Desktop Layout</div>
+            <ul style={{ paddingLeft: 18 }}>
+              <li>5-column card grid (exactly 10 per page)</li>
+              <li>Search bar lives in header (saves vertical space)</li>
+              <li>All 3 lang options visible as pills (EN / ES / RU)</li>
+              <li>Steam + WhatsApp buttons in header right-side</li>
+              <li>Results count + sort control in subbar</li>
+              <li>Single-row pagination at bottom</li>
+            </ul>
+            <div style={{ marginTop: 12, color: '#888', fontSize: 13 }}>
+              Q: Should cards have a "Buy / Contact" action inline?
+            </div>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="note-card" label="Card anatomy" width={280} height={380}>
+          <div style={{ padding: 20, fontFamily: "'Caveat', cursive" }}>
+            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 10, borderBottom: '2px solid #222', paddingBottom: 4 }}>🃏 Card anatomy</div>
+            <ItemCard heroName="Invoker" setName="Fractal Horns of Inner Abysm" price="$12.00" width={238} />
+            <div style={{ marginTop: 10, fontSize: 13, color: '#555', lineHeight: 1.7 }}>
+              <div>① Hero image (3:4 ratio)</div>
+              <div>② Hero name (muted label)</div>
+              <div>③ Set name (main text)</div>
+              <div>④ Price (bold, prominent)</div>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: '#aaa', fontStyle: 'italic' }}>
+              + optional: rarity badge, "contact" CTA
+            </div>
+          </div>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<div id="root"></div>
+</body>
+</html>
