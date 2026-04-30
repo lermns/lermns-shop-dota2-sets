@@ -363,7 +363,7 @@ main {
   grid-template-columns: 1fr;
   gap: 14px;
 }
-@media (min-width: 500px)  { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 380px)  { .card-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 860px)  { .card-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
 @media (min-width: 1160px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1400px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }
@@ -765,6 +765,44 @@ main {
   border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(155,16,16,0.3);
+}
+
+/* ════════════════════════
+   MOBILE FIXES
+═══════════════════════ */
+@media (max-width: 480px) {
+  /* intro: reduce letter-spacing so title fits in 390px screen */
+  .intro-content {
+    margin-top: 8vh;
+    padding: 0 12px;
+  }
+  .intro-title {
+    font-size: clamp(26px, 7.5vw, 38px);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .intro-sub {
+    font-size: clamp(9px, 2.5vw, 11px);
+    letter-spacing: 0.14em;
+  }
+
+  /* header: tighten up spacing */
+  .header-inner { gap: 8px; padding: 0 12px; }
+  .logo-text { font-size: 16px; }
+  .lang-btn { padding: 3px 5px; font-size: 11px; }
+
+  /* main: less horizontal padding so cards have more room */
+  main { padding: 14px 12px 60px; }
+
+  /* cards: tighter gap on small screens */
+  .card-grid { gap: 10px; }
+  .card-body { padding: 8px 10px 10px; }
+  .card-set { font-size: 12px; }
+  .card-price { font-size: 17px; }
+
+  /* rarity filter: smaller pills */
+  .year-filter { padding: 8px 10px; gap: 5px; }
+  .year-btn { padding: 4px 8px; font-size: 12px; }
 }
 </style>
 </head>
@@ -1232,7 +1270,7 @@ function renderCards() {
         <div class="card-hero">${item.hero}</div>
         <div class="card-set">${item.set}</div>
         <div class="card-foot">
-          <div class="card-price">$${item.price}.00</div>
+          
           <div class="card-rarity" data-r="${item.rarity}"><span class="rdot" data-r="${item.rarity}"></span>${T[currentLang][item.rarity] || item.rarity}</div>
         </div>
       </div>`;
@@ -1240,6 +1278,7 @@ function renderCards() {
     grid.appendChild(card);
     setTimeout(() => card.classList.add('in'), i * 48);
   });
+  //<div class="card-price">$${item.price}.00</div>
 
   updateCount();
   renderPagination();
