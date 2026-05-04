@@ -130,14 +130,14 @@ body {
   animation: introTextIn 1.6s 0.4s ease-out forwards;
 }
 @keyframes introTextIn {
-  0% { opacity: 0; transform: translateY(20px); letter-spacing: 0.4em; }
-  100% { opacity: 1; transform: translateY(0); letter-spacing: 0.32em; }
+  0% { opacity: 0; transform: translateY(20px); letter-spacing: 0.1em; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: -0.025em; }
 }
 .intro-title {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   font-size: clamp(40px, 7vw, 84px);
-  letter-spacing: 0.32em;
+  letter-spacing: -0.025em;
   text-transform: uppercase;
   color: #f4f4f4;
   text-shadow: 0 0 38px rgba(204, 17, 0, 0.45), 0 4px 24px rgba(0,0,0,0.8);
@@ -151,7 +151,7 @@ body {
   font-family: 'Outfit', sans-serif;
   font-weight: 300;
   font-size: clamp(12px, 1.4vw, 14px);
-  letter-spacing: 0.36em;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #999;
 }
@@ -200,7 +200,7 @@ header {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   font-size: 19px;
-  letter-spacing: 0.22em;
+  letter-spacing: -0.025em;
   color: var(--text-1);
   text-transform: uppercase;
   line-height: 1;
@@ -778,12 +778,12 @@ main {
   }
   .intro-title {
     font-size: clamp(26px, 7.5vw, 38px);
-    letter-spacing: 0.08em;
+    letter-spacing: -0.025em;
     margin-bottom: 8px;
   }
   .intro-sub {
     font-size: clamp(9px, 2.5vw, 11px);
-    letter-spacing: 0.14em;
+    letter-spacing: -0.02em;
   }
 
   /* header: tighten up spacing */
